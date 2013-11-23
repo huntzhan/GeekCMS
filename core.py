@@ -5,8 +5,7 @@ from datetime import datetime
 import os
 import copy
 
-ARTICLE_DIR = '/Users/peter/Data/Project/GeekCMS/GeekCMS/Article'
-
+from settings import ARTICLE_DIR
 
 class MarkdownArticle(object):
     """
