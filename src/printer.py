@@ -48,7 +48,9 @@ class PagePrinter(object):
             
 
 
-        path = os.path.join(OUTPUT_DIR, page.url.lstrip('/'))
+        url = page.url
+        url = url.decode('utf-8')
+        path = os.path.join(OUTPUT_DIR, url.lstrip('/')).encode('utf-8')
         
         make_related_dirs(page, path)
         print_page(page, path)

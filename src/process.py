@@ -26,9 +26,7 @@ class ArticlePage(BasicPage):
         self.article = article
 
     def _generate_url(self, article):
-        head, tail = os.path.split(article.relative_path)
-        tail = tail.replace('.md', '.html')
-        return '/' + os.path.join(head, tail)
+        return article.url
 
     def _generate_html(self, article):
         template = self.env.get_template('article.html')
@@ -85,12 +83,8 @@ class ArchivePage(BasicPage):
             if None not in cur_node:
                 cur_node[None] = []
 
-            head, tail = os.path.split(article.relative_path)
-            tail = tail.replace('.md', '.html')
-            url = '/' + os.path.join(head, tail)
-
             cur_node[None].append({
-                'url': url,
+                'url': article.url,
                 'title': article.title,
             })
 

@@ -3,6 +3,7 @@ import markdown
 import re
 import os
 from datetime import datetime
+import urllib
 
 from settings import ARTICLE_DIR
 from settings import NORMAL_DIR
@@ -57,6 +58,14 @@ class Article(object):
         pattern = re.compile(info_pattern)
         self.content = pattern.sub('', self.content)
 
+    def _get_url(self):
+        head, tail = os.path.split(self.relative_path)
+        tail = tail.replace('.md', '.html')
+        url = '/' + os.path.join(head, tail)
+        url = url.encode('utf-8')
+        return url
+    url = property(_get_url)
+
 
 class ArticleLoader(object):
 
@@ -94,6 +103,7 @@ class ArticleSetGenerator(object):
                 absolute_path = os.path.join(dirpath, name)
                 relative_path = os.path.relpath(absolute_path, 
                                                 ARTICLE_DIR)
+                relative_path = relative_path.decode('utf-8')
                 article = loader(relative_path)
                 self._article_set.append(article)
 
