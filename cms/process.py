@@ -98,9 +98,8 @@ class AboutPage(BasicPage):
     def _generate_url(self, *args, **kwargs):
         return '/about/me.html'
 
-    def _generate_html(self, loader):
+    def _generate_html(self, article):
         template = self.env.get_template('article.html')
-        article = loader('about/me.md')
         # render markdown to html
         article_html = markdown.markdown(article.content)
         # insert html to template
@@ -129,7 +128,8 @@ class PageSetGenerator(object):
         self._page_set.append(ArchivePage(env, article_set))
 
     def _generate_about_page(self, env, loader):
-        self._page_set.append(AboutPage(env, loader))
+        article = loader('about/me.md')
+        self._page_set.append(AboutPage(env, article))
 
     def _get_page_set(self):
         return self._page_set

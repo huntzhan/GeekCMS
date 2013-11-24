@@ -35,7 +35,7 @@ class PagePrinter(object):
 
             from_files = set(os.listdir(from_path))
             to_files = set(os.listdir(to_path))
-            copy_files = from_files - to_files
+            copy_files = from_files
 
             for name in copy_files:
                 if name.startswith('.') or name.endswith('.md'):

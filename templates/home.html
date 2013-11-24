@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+	{% for article in article_set %}
+		<div class="row">
+				<div class="col-md-8">
+					<h3><a href="{{ article.url }}">{{ article.title }}</a></h3>
+				</div>
+				<div class="col-md-4">
+					<h3>{{ article.post_time.strftime('%Y-%m-%d') }}</h3>
+				</div>
+		</div>
+	{% endfor %}
+{% endblock %}

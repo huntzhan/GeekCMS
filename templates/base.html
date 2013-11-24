@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Test</title>
+		<meta charset="utf-8">
+		<!-- Bootstrap -->
+		<link href="http://netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css" rel="stylesheet" media="screen">
+
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+		<script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
+	</head>
+	<body>
+		<div class="container">
+			<div class="row">
+				<div class="col-md-2 col-md-offset-3">
+					<h1 class="text-center" >
+						<a href="/home/page.html">Home</a>
+					</h1>
+				</div>
+				<div class="col-md-2">
+					<h1 class="text-center" >
+						<a href="/archives/archives.html">Archives</a>
+					</h1>
+				</div>
+				<div class="col-md-2">
+					<h1 class="text-center" >
+						<a href="/about/me.html">About</a>
+					</h1>
+				</div>
+			</div>
+			<div class="row" style="height: 3em">
+			</div>
+			<div class="row">
+				<div class="col-md-8 col-md-offset-2">
+					{% block content %}{% endblock %}
+				</div>
+			</div>
+
+			<div class="row" style="height: 20em">
+		</div>
+	</body>
+</html>
