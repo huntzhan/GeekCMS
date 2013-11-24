@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 import markdown
 import re
 import os
@@ -62,7 +61,6 @@ class Article(object):
         head, tail = os.path.split(self.relative_path)
         tail = tail.replace('.md', '.html')
         url = '/' + os.path.join(head, tail)
-        url = url.encode('utf-8')
         return url
     url = property(_get_url)
 
@@ -75,7 +73,6 @@ class ArticleLoader(object):
         try:
             with open(absolute_path) as f:
                 content = f.read()
-                content = content.decode('utf-8')
         except Exception as e:
             # implement it later
             raise e
@@ -103,7 +100,6 @@ class ArticleSetGenerator(object):
                 absolute_path = os.path.join(dirpath, name)
                 relative_path = os.path.relpath(absolute_path, 
                                                 ARTICLE_DIR)
-                relative_path = relative_path.decode('utf-8')
                 article = loader(relative_path)
                 self._article_set.append(article)
 

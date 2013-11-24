@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 import os
 import shutil
 from settings import OUTPUT_DIR
@@ -18,7 +17,6 @@ class PagePrinter(object):
             try:
                 with open(path, 'w') as f:
                     html = page.html
-                    html = html.encode('utf-8')
                     f.write(html)
             except Exception as e:
                 raise e
@@ -45,12 +43,8 @@ class PagePrinter(object):
                 src = os.path.join(from_path, name)
                 dst = os.path.join(to_path, name)
                 shutil.copy2(src, dst)
-            
 
-
-        url = page.url
-        url = url.decode('utf-8')
-        path = os.path.join(OUTPUT_DIR, url.lstrip('/')).encode('utf-8')
+        path = os.path.join(OUTPUT_DIR, page.url.lstrip('/'))
         
         make_related_dirs(page, path)
         print_page(page, path)

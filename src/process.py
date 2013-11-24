@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 import os
 import markdown
 
@@ -77,7 +76,7 @@ class ArchivePage(BasicPage):
         article_tree = {}
         for article in article_set:
             head, tail = os.path.split(article.relative_path)
-            dirs = head.split('/')
+            dirs = head.split('/')[1:]
 
             cur_node = construct_article_tree(article_tree, dirs)
             if None not in cur_node:
