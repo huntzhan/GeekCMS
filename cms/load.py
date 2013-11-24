@@ -7,12 +7,13 @@ import urllib
 from settings import ARTICLE_DIR
 from settings import NORMAL_DIR
 
+
 class Article(object):
 
     def __init__(self, relative_path, content):
         self.relative_path = relative_path
         self.content = content
-        
+
         self._extract_info()
         self._remove_info_pattern()
 
@@ -20,11 +21,11 @@ class Article(object):
         """
         Infomation of article should be stored as following format:
         <!-- Key[Value] -->
-        
+
         Avaliable Key/Value pairs is as follow:
-        
+
         1. Key: Title, The title of article.
-        2. Time: Article posted time, should be parsed by 
+        2. Time: Article posted time, should be parsed by
         datetime.strptime(Time, '%d/%m/%Y'), i.e. 1/11/2013
         """
 
@@ -47,7 +48,7 @@ class Article(object):
             try:
                 info = match.group(1)
                 info = parser(info)
-                setattr(self, cls_attr, info)                
+                setattr(self, cls_attr, info)
             except Exception as e:
                 # implement it later
                 raise e
@@ -98,7 +99,7 @@ class ArticleSetGenerator(object):
                     continue
 
                 absolute_path = os.path.join(dirpath, name)
-                relative_path = os.path.relpath(absolute_path, 
+                relative_path = os.path.relpath(absolute_path,
                                                 ARTICLE_DIR)
                 article = loader(relative_path)
                 self._article_set.append(article)

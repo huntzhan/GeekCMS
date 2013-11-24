@@ -33,8 +33,8 @@ class ArticlePage(BasicPage):
         article_html = markdown.markdown(article.content)
         # insert html to template
         return template.render(article_html=article_html)
-    
-        
+
+
 class HomePage(BasicPage):
 
     def _generate_url(self, *args, **kwargs):
@@ -61,7 +61,7 @@ class ArchivePage(BasicPage):
         return '/archives/archives.html'
 
     def _generate_html(self, article_set):
-        
+
         def construct_article_tree(article_tree, dirs):
             cur_node = article_tree
             for dir in dirs:
@@ -70,7 +70,7 @@ class ArchivePage(BasicPage):
                 else:
                     cur_node[dir] = {}
                     cur_node = cur_node[dir]
-            
+
             return cur_node
 
         # generate structure

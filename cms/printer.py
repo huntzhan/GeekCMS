@@ -45,7 +45,7 @@ class PagePrinter(object):
                 shutil.copy2(src, dst)
 
         path = os.path.join(OUTPUT_DIR, page.url.lstrip('/'))
-        
+
         make_related_dirs(page, path)
         print_page(page, path)
         copy_relate_resource(page, path)
