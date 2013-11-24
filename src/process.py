@@ -42,15 +42,16 @@ class HomePage(BasicPage):
 
     def _generate_html(self, article_set):
         template = self.env.get_template('home.html')
-        return template.render(article_html='nothing')
+        return template.render(article_set=article_set)
 
 
 class ArticleSetPreprocessor(object):
 
-    def __call__(self, article_set):
+    def __call__(self, article_set, reverse=False):
         return sorted(
             article_set,
             key=lambda x: x.post_time,
+            reverse=reverse,
         )
 
 
@@ -108,21 +109,23 @@ class AboutPage(BasicPage):
 
 class PageSetGenerator(object):
 
-    def __init__(self, article_set, env, loader):
+    def __init__(self, article_set, env, loader, preprocessor):
         self._page_set = []
         self._generate_article_page(env, article_set)
-        self._generate_home_page(env, article_set)
-        self._generate_archive_page(env, article_set)
+        self._generate_home_page(env, article_set, preprocessor)
+        self._generate_archive_page(env, article_set, preprocessor)
         self._generate_about_page(env, loader)
 
     def _generate_article_page(self, env, article_set):
         for article in article_set:
             self._page_set.append(ArticlePage(env, article))
 
-    def _generate_home_page(self, env, article_set):
+    def _generate_home_page(self, env, article_set, preprocessor):
+        article_set = preprocessor(article_set, reverse=True)
         self._page_set.append(HomePage(env, article_set))
 
-    def _generate_archive_page(self, env, article_set):
+    def _generate_archive_page(self, env, article_set, preprocessor):
+        article_set = preprocessor(article_set)
         self._page_set.append(ArchivePage(env, article_set))
 
     def _generate_about_page(self, env, loader):

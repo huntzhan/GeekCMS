@@ -17,12 +17,14 @@ article_set_generator = ArticleSetGenerator(article_loader)
 article_set = article_set_generator.article_set
 # process content
 preprocessor = ArticleSetPreprocessor()
-article_set = preprocessor(article_set)
-
 loader = FileSystemLoader(TEMPLATE_DIR)
 env = Environment(loader=loader)
-
-page_set_generator = PageSetGenerator(article_set, env, article_loader)
+page_set_generator = PageSetGenerator(
+    article_set,
+    env,
+    article_loader,
+    preprocessor
+)
 page_set = page_set_generator.page_set
 # output
 printer = PagePrinter()
