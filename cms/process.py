@@ -1,6 +1,8 @@
 import os
 import markdown
 
+from max_depth_toc import MaxDepthTocExtension
+
 from settings import TEMPLATE_DIR
 
 
@@ -34,7 +36,8 @@ class ArticlePage(BasicPage):
     def _generate_html(self, article):
         template = self.env.get_template('article.html')
         # render markdown to html
-        article_html = markdown.markdown(article.content)
+        article_html = markdown.markdown(article.content,
+                                         extensions=[MaxDepthTocExtension()])
         # insert html to template
         return template.render(article_html=article_html)
 
