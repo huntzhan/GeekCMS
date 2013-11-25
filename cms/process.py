@@ -10,6 +10,10 @@ class BasicPage(object):
         self.env = env
         self.url = self._generate_url(*args, **kwargs)
         self.html = self._generate_html(*args, **kwargs)
+        # True for page to be generated, while False prevents
+        # the html generation process. This attr should be assign
+        # in printer layer.
+        self.active = True
 
     def _generate_url(self, *args, **kwargs):
         pass
