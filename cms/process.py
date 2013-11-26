@@ -11,7 +11,7 @@ class BasicPage(object):
         # True for page to be generated, while False prevents
         # the html generation process. This attr should be assign
         # in printer layer.
-        self.active = True
+        self.can_generate = True
 
     def _generate_url(self, *args, **kwargs):
         pass
@@ -76,6 +76,7 @@ class ArchivePage(BasicPage):
         # generate structure
         article_tree = {}
         for article in article_set:
+
             head, tail = os.path.split(article.relative_path)
             dirs = head.split('/')[1:]
 

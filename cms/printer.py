@@ -75,11 +75,10 @@ class PagePreprocessor(object):
         # assure dirs for generating html file and resouce files.
         self._make_related_dirs(output.dir_path)
 
-        # page
         if self._judge_copy(input.file_path, output.file_path):
-            page.active = True
+            page.can_generate = True
         else:
-            page.active = False
+            page.can_generate = False
         # resource
         if input.has_input:
             path_pairs = self._generate_file_set_for_copy(
@@ -140,7 +139,7 @@ class PagePrinter(object):
             raise e
 
     def __call__(self, page, output_file_path):
-        if page.active:
+        if page.can_generate:
             self._print_page(page, output_file_path)
 
 

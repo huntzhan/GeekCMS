@@ -1,8 +1,9 @@
-"""Usage: cms.py [git-push | auto]
+"""Usage: cms.py [git-push | auto | server]
 
 Explanation:
     git-push  Commit and push git repo pointed by OUTPUT_DIR
     auto      Generate HTML and git-push
+    server    Run Python SimpleHTTPServer in output working directory
 
 """
 
@@ -57,11 +58,20 @@ def git_commit_and_push():
     os.system(command)
 
 
+def run_server():
+    os.chdir(OUTPUT_DIR)
+
+    command = """python -m http.server
+              """
+
+    os.system(command)
+
+
 if __name__ == '__main__':
     args = docopt(__doc__, version='0.2')
-    if not args['git-push'] and not args['auto']:
-        # default
-        default()
+
+    if args['server']:
+        run_server()
 
     elif args['git-push']:
         # commit and push git
@@ -71,3 +81,7 @@ if __name__ == '__main__':
         # default + git-push
         default()
         git_commit_and_push()
+
+    else:
+        # default
+        default()

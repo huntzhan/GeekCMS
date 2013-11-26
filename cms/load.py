@@ -11,15 +11,24 @@ import markdown
 from settings import MD_EXTENSIONS
 
 
+def article_activeness(x):
+    if x[0].lower() == 'false':
+        return False
+    else:
+        return True
+
 meta_processor = [
     ('title', 'title', lambda x: x[0]),
     ('date', 'post_time', lambda x: datetime.strptime(x[0], '%d/%m/%Y')),
+    ('activeness', 'active', article_activeness),
 ]
 
 
 class Article(object):
 
     def __init__(self, relative_path, html, meta):
+        self.active = True
+
         self.relative_path = relative_path
         self.html = html
 
@@ -29,7 +38,10 @@ class Article(object):
     def _process_meta(self, meta):
         for key, cls_attr, processor in meta_processor:
             try:
-                val = processor(meta.get(key))
+                data = meta.get(key, None)
+                if data is None:
+                    continue
+                val = processor(data)
                 setattr(self, cls_attr, val)
             except Exception as e:
                 raise e
@@ -81,7 +93,8 @@ class ArticleSetGenerator(object):
                 relative_path = os.path.relpath(absolute_path,
                                                 ARTICLE_DIR)
                 article = loader(relative_path)
-                self._article_set.append(article)
+                if article.active:
+                    self._article_set.append(article)
 
     def _get_article_set(self):
         return self._article_set
