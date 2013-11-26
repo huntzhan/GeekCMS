@@ -5,7 +5,7 @@ from datetime import datetime
 import urllib
 
 from settings import ARTICLE_DIR
-from settings import NORMAL_DIR
+from settings import ARCHIVE_DIR_NAME
 
 import markdown
 from settings import MD_EXTENSIONS
@@ -68,7 +68,7 @@ class ArticleSetGenerator(object):
         self._load_article_set(loader)
 
     def _load_article_set(self, loader):
-        article_dir_root = os.path.join(ARTICLE_DIR, NORMAL_DIR)
+        article_dir_root = os.path.join(ARTICLE_DIR, ARCHIVE_DIR_NAME)
 
         for dirpath, dirnames, filenames in os.walk(article_dir_root):
             if dirnames:

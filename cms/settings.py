@@ -2,7 +2,7 @@ from extensions.max_depth_toc import MaxDepthTocExtension
 
 OUTPUT_DIR = ''
 ARTICLE_DIR = ''
-NORMAL_DIR = ''
+ARCHIVE_DIR_NAME = ''
 TEMPLATE_DIR = ''
 
 MD_EXTENSIONS = [
