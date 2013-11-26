@@ -104,6 +104,7 @@ class AboutPage(BasicPage):
         return template.render(title=article.title,
                                article_html=article.html)
 
+
 class PageSetGenerator(object):
 
     def __init__(self, article_set, env, loader, preprocessor):

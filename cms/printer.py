@@ -5,9 +5,10 @@ from settings import ARTICLE_DIR
 import functools
 import collections
 
+
 def chain_getattr(obj, *attrs):
     try:
-        result = functools.reduce(getattr, attrs, obj)    
+        result = functools.reduce(getattr, attrs, obj)
     except:
         result = None
     finally:
@@ -15,7 +16,6 @@ def chain_getattr(obj, *attrs):
 
 
 class PagePreprocessor(object):
-
 
     def _make_related_dirs(self, dir_path):
         if not os.path.exists(dir_path):
@@ -40,7 +40,7 @@ class PagePreprocessor(object):
             dst_mtime = os.path.getmtime(dst_file_path)
         except OSError:
             return True
-        
+
         # both exsit.
         # judge by last modified time.
         if src_mtime > dst_mtime:
@@ -52,7 +52,7 @@ class PagePreprocessor(object):
             self, page, article,
             input_dir_path, output_dir_path):
 
-        # filter input file names 
+        # filter input file names
         input_file_names = filter(
             self._filter_file_name, os.listdir(input_dir_path),
         )
@@ -70,7 +70,6 @@ class PagePreprocessor(object):
                     (src_file_path, dst_file_path),
                 )
         return path_pairs
-
 
     def __call__(self, page, input, output, resource_copier):
         # assure dirs for generating html file and resouce files.
@@ -115,7 +114,7 @@ class IOPathTranslator(object):
         )
         # input
         # page might not have a input file
-        try: 
+        try:
             input_file_path, input_dir_path = self._get_file_path_and_dir_path(
                 ARTICLE_DIR, chain_getattr(page, 'article', 'relative_path'),
             )
@@ -158,6 +157,7 @@ class PageRelatedResourceCopier(object):
         path_pairs = set(self._path_pairs)
         for src, dst in path_pairs:
             shutil.copy2(src, dst)
+
 
 class PageSetProcessor(object):
 
