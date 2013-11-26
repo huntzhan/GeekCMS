@@ -31,7 +31,8 @@ class ArticlePage(BasicPage):
 
     def _generate_html(self, article):
         template = self.env.get_template('article.html')
-        return template.render(article_html=article.html)
+        return template.render(title=article.title,
+                               article_html=article.html)
 
 
 class HomePage(BasicPage):
@@ -100,8 +101,8 @@ class AboutPage(BasicPage):
     def _generate_html(self, article):
         template = self.env.get_template('article.html')
         # insert html to template
-        return template.render(article_html=article.html)
-
+        return template.render(title=article.title,
+                               article_html=article.html)
 
 class PageSetGenerator(object):
 
