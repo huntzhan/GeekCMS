@@ -7,56 +7,32 @@ import urllib
 from settings import ARTICLE_DIR
 from settings import NORMAL_DIR
 
+import markdown
+from settings import MD_EXTENSIONS
+
+
+meta_processor = [
+    ('title', 'title', lambda x: x[0]),
+    ('date', 'post_time', lambda x: datetime.strptime(x[0], '%d/%m/%Y')),
+]
+
 
 class Article(object):
 
-    def __init__(self, relative_path, content):
+    def __init__(self, relative_path, html, meta):
         self.relative_path = relative_path
-        self.content = content
+        self.html = html
 
-        self._extract_info()
-        self._remove_info_pattern()
+        # process meta data
+        self._process_meta(meta)
 
-    def _extract_info(self):
-        """
-        Infomation of article should be stored as following format:
-        <!-- Key[Value] -->
-
-        Avaliable Key/Value pairs is as follow:
-
-        1. Key: Title, The title of article.
-        2. Time: Article posted time, should be parsed by
-        datetime.strptime(Time, '%d/%m/%Y'), i.e. 1/11/2013
-        """
-
-        def title_parser(info):
-            return info
-
-        def time_parser(info):
-            return datetime.strptime(info, '%d/%m/%Y')
-
-        avaliable_keys = [
-            ('Title', 'title', title_parser),
-            ('Time', 'post_time', time_parser),
-        ]
-
-        info_pattern = '<!--\s+{}\[((\w|\W)+?)\]\s+-->'
-
-        for key, cls_attr, parser in avaliable_keys:
-            pattern = re.compile(info_pattern.format(key))
-            match = pattern.search(self.content)
+    def _process_meta(self, meta):
+        for key, cls_attr, processor in meta_processor:
             try:
-                info = match.group(1)
-                info = parser(info)
-                setattr(self, cls_attr, info)
+                val = processor(meta.get(key))
+                setattr(self, cls_attr, val)
             except Exception as e:
-                # implement it later
                 raise e
-
-    def _remove_info_pattern(self):
-        info_pattern = '<!--\s+(\w|\W)+?\[(\w|\W)+?\]\s+-->'
-        pattern = re.compile(info_pattern)
-        self.content = pattern.sub('', self.content)
 
     def _get_url(self):
         head, tail = os.path.split(self.relative_path)
@@ -74,11 +50,14 @@ class ArticleLoader(object):
         try:
             with open(absolute_path) as f:
                 content = f.read()
+                # generate html
+                md = markdown.Markdown(extensions=MD_EXTENSIONS)
+                html = md.convert(content)
         except Exception as e:
             # implement it later
             raise e
 
-        return Article(relative_path, content)
+        return Article(relative_path, html, md.Meta)
 
 
 class ArticleSetGenerator(object):
