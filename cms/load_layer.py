@@ -56,8 +56,7 @@ class SimpleLoader:
             exts.append(ext)
         return exts
 
-    def _load_files(self):
-        files = []
+    def __call__(self, files):
         for dirpath, dirnames, filenames in os.walk(self.root):
             for name in filenames:
                 # check ext
@@ -69,9 +68,6 @@ class SimpleLoader:
                 abs_path = os.path.join(dirpath, name)
                 file = File(abs_path, self.kind)
                 files.append(file)
-        return files
-
-    files = property(_load_files)
 
 
 import configuration
@@ -81,29 +77,25 @@ class Settings:
     def __init__(self):
         self.loaders = self._load_plugins(
             configuration.LOADERS,
-            'files',
             'register_loader',
         )
 
         self.preprocessors = self._load_plugins(
             configuration.PREPROCESSORS,
-            'fragments',
             'register_preprocessor',
         )
 
         self.processors = self._load_plugins(
             configuration.PROCESSORS,
-            'pages',
             'register_processor',
         )
 
         self.printers = self._load_plugins(
             configuration.PRINTERS,
-            'paths',
             'register_printer',
         )
 
-    def _load_plugins(self, plugin_names, necessary_attr, func_name):
+    def _load_plugins(self, plugin_names, func_name):
         plugins = []
         for plugin_name in plugin_names:
             if isinstance(plugin_name, str):
@@ -112,8 +104,8 @@ class Settings:
             else:
                 plugin = plugin_name
 
-            # assure necessary attributes
-            if hasattr(plugin, necessary_attr):
+            # check callable
+            if hasattr(plugin, '__call__'):
                 plugins.append(plugin)
 
         return plugins
@@ -122,11 +114,10 @@ class Settings:
 def load(settings):
     files = []
     for loader in settings.loaders:
-        files.extend(
-            loader.files,
-        )
+        loader(files)
     return files
 
 
 if __name__ == '__main__':
-    pass
+    s = Settings()
+    print(load(s))
