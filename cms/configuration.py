@@ -1,5 +1,11 @@
 # all plugins should be place in plugins
 
+# __init__.py should contain a func named register_command_processor
+# that returns a callable.
+COMMAND_PROCESSORS = [
+    'simple',
+]
+
 # __init__.py should contain a func named register_loader
 # that returns a callable.
 LOADERS = [

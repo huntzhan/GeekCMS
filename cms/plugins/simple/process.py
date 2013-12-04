@@ -14,7 +14,7 @@ from .settings import ARCHIVE
 def md5_url(html):
     m = hashlib.md5()
     m.update(html.encode('utf-8'))
-    return m.hexdigest()
+    return m.hexdigest() + '.html'
 
 
 def article_handler(fragment, env):

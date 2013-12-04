@@ -1,32 +1,24 @@
-"""Usage: cms.py [git-push | auto | server]
-
-Explanation:
-    git-push  Commit and push git repo pointed by OUTPUT_DIR
-    auto      Generate HTML and git-push
-    server    Run Python SimpleHTTPServer in output working directory
-
-"""
-
 import os
 from datetime import datetime
 from docopt import docopt
-from jinja2 import Environment
-from jinja2 import FileSystemLoader
-
-#from load import ArticleLoader
-#from load import ArticleSetGenerator
-#from process import ArticleSetPreprocessor
-#from process import PageSetGenerator
-#from printer import PageSetProcessor
-
-#from settings import TEMPLATE_DIR
-#from settings import OUTPUT_DIR
 
 import configuration
+from load_layer import load
+from process_layer import preprocess
+from process_layer import process
+from write_layer import write
+from command_layer import process_docopt_doc
+from command_layer import process_args
+
 import importlib
 class Settings:
 
     def __init__(self):
+        self.command_processors = self._load_plugins(
+            configuration.COMMAND_PROCESSORS,
+            'register_command_processor',
+        )
+
         self.loaders = self._load_plugins(
             configuration.LOADERS,
             'register_loader',
@@ -69,79 +61,18 @@ class Settings:
         return plugins
 
 
-from load_layer import load
-from process_layer import preprocess
-from process_layer import process
-from write_layer import write
 
-def test():
-    settings = Settings()
+def default(settings):
     files = load(settings)
     fragments = preprocess(settings, files)
     pages = process(settings, fragments)
     write(settings, pages)
 
 
-#def default():
-#    article_loader = ArticleLoader()
-#    preprocessor = ArticleSetPreprocessor()
-#    page_set_processor = PageSetProcessor()
-#
-#    # load file
-#    article_set_generator = ArticleSetGenerator(article_loader)
-#    article_set = article_set_generator.article_set
-#
-#    # process content
-#    loader = FileSystemLoader(TEMPLATE_DIR)
-#    env = Environment(loader=loader)
-#    page_set_generator = PageSetGenerator(
-#        article_set,
-#        env,
-#        article_loader,
-#        preprocessor
-#    )
-#    page_set = page_set_generator.page_set
-#
-#    # print
-#    page_set_processor(page_set)
-#
-#
-#def git_commit_and_push():
-#    os.chdir(OUTPUT_DIR)
-#
-#    command = """git add --all *
-#                 git commit -m 'GeekCMS Update, {}'
-#                 git push
-#              """.format(datetime.now().strftime('%c'))
-#
-#    os.system(command)
-#
-#
-#def run_server():
-#    os.chdir(OUTPUT_DIR)
-#
-#    command = """python -m http.server
-#              """
-#
-#    os.system(command)
-
-
 if __name__ == '__main__':
-    args = docopt(__doc__, version='0.2')
+    settings = Settings()
+    doc = process_docopt_doc(settings)
+    args = docopt(doc, version='0.2.1')
 
-    #if args['server']:
-    #    run_server()
-
-    #elif args['git-push']:
-    #    # commit and push git
-    #    git_commit_and_push()
-
-    #elif args['auto']:
-    #    # default + git-push
-    #    default()
-    #    git_commit_and_push()
-
-    #else:
-    #    # default
-    
-    test()
+    if process_args(settings, args):
+        default(settings)

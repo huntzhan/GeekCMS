@@ -8,10 +8,16 @@ from .settings import ABOUT_DIR
 from .settings import AVALIABLE_EXTENSIONS
 from .settings import OUTPUT_DIR
 
+from .command_process import GitPush
+from .command_process import RunServer
 from .preprocess import del_fragments
 from .process import article_processor
 from .process import home_processor
 from .write import SimpleWriter
+
+
+def register_command_processor():
+    return [GitPush(), RunServer()]
 
 
 def register_loader():

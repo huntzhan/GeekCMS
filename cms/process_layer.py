@@ -10,7 +10,9 @@ class Fragment:
 
 
 class Page:
-
+    """
+    HTML Pages.
+    """
     def __init__(self, html, url, kind, fragment=None):
         self.html = html
         self.url = url
