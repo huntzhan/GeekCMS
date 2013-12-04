@@ -1,30 +1,26 @@
-from load_layer import SimpleLoader
 # all plugins should be place in plugins
 
 # __init__.py should contain a func named register_loader
 # that returns a callable.
 LOADERS = [
-    SimpleLoader('/Users/peter/Data/Project/haoxun.github.io/Article/articles',
-                 '.md', 'articles'),
-    SimpleLoader('/Users/peter/Data/Project/haoxun.github.io/Article/about',
-                 '.md', 'about'),
-
+    'simple',
 ]
 
 # __init__.py should contain a func named register_preprocessor
 # that returns a callable.
 PREPROCESSORS = [
-
+    'markdown',
+    'simple',
 ]
 
 # __init__.py should contain a func named register_processor
 # that returns a callable.
 PROCESSORS = [
-
+    'simple',
 ]
 
-# __init__.py should contain a func named register_printer
+# __init__.py should contain a func named register_writer
 # that returns a callable.
-PRINTERS = [
-
+WRITERS = [
+    'simple',
 ]

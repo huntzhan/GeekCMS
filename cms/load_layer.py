@@ -70,54 +70,8 @@ class SimpleLoader:
                 files.append(file)
 
 
-import configuration
-import importlib
-class Settings:
-
-    def __init__(self):
-        self.loaders = self._load_plugins(
-            configuration.LOADERS,
-            'register_loader',
-        )
-
-        self.preprocessors = self._load_plugins(
-            configuration.PREPROCESSORS,
-            'register_preprocessor',
-        )
-
-        self.processors = self._load_plugins(
-            configuration.PROCESSORS,
-            'register_processor',
-        )
-
-        self.printers = self._load_plugins(
-            configuration.PRINTERS,
-            'register_printer',
-        )
-
-    def _load_plugins(self, plugin_names, func_name):
-        plugins = []
-        for plugin_name in plugin_names:
-            if isinstance(plugin_name, str):
-                module = importlib.import_module('plugins.' + plugin_name)
-                plugin = getattr(module, func_name)()
-            else:
-                plugin = plugin_name
-
-            # check callable
-            if hasattr(plugin, '__call__'):
-                plugins.append(plugin)
-
-        return plugins
-
-
 def load(settings):
     files = []
     for loader in settings.loaders:
         loader(files)
     return files
-
-
-if __name__ == '__main__':
-    s = Settings()
-    print(load(s))

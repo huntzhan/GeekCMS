@@ -1,21 +1,15 @@
 import os
 import shutil
-from settings import OUTPUT_DIR
-from settings import ARTICLE_DIR
 import functools
 import collections
 
+from write_layer import SimpleWriter
+from write_layer import url2rel_path
 
-def chain_getattr(obj, *attrs):
-    try:
-        result = functools.reduce(getattr, attrs, obj)
-    except:
-        result = None
-    finally:
-        return result
+from .settings import OUTPUT_DIR
 
 
-class PagePreprocessor(object):
+class PagePreprocessor:
 
     def _make_related_dirs(self, dir_path):
         if not os.path.exists(dir_path):
@@ -48,8 +42,8 @@ class PagePreprocessor(object):
         else:
             return False
 
-    def _generate_file_set_for_copy(
-            self, page, article,
+    def _generate_files_for_copy(
+            self, page,
             input_dir_path, output_dir_path):
 
         # filter input file names
@@ -80,17 +74,16 @@ class PagePreprocessor(object):
         else:
             page.can_generate = False
         # resource
-        if input.has_input:
-            path_pairs = self._generate_file_set_for_copy(
+        if input.has_input and page.can_generate:
+            path_pairs = self._generate_files_for_copy(
                 page,
-                page.article,
                 input.dir_path,
                 output.dir_path,
             )
             resource_copier.update_path_pairs(path_pairs)
 
 
-class IOPathTranslator(object):
+class IOPathTranslator:
 
     Input = collections.namedtuple(
         'Input',
@@ -101,21 +94,22 @@ class IOPathTranslator(object):
         ['file_path', 'dir_path'],
     )
 
-    def _get_file_path_and_dir_path(self, root_path, relative_path):
-        file_path = os.path.join(root_path, relative_path)
+    def _get_file_path_and_dir_path(self, root, rel_path):
+        file_path = os.path.join(root, rel_path)
         dir_path, file_name = os.path.split(file_path)
         return file_path, dir_path
 
     def __call__(self, page):
         # output
         output_file_path, output_dir_path = self._get_file_path_and_dir_path(
-            OUTPUT_DIR, page.url.lstrip('/'),
+            OUTPUT_DIR, url2rel_path(page.url)
         )
         # input
         # page might not have a input file
         try:
+            file = page.fragment.file
             input_file_path, input_dir_path = self._get_file_path_and_dir_path(
-                ARTICLE_DIR, chain_getattr(page, 'article', 'relative_path'),
+                '', file.abs_path,
             )
             has_input = True
         except:
@@ -128,7 +122,7 @@ class IOPathTranslator(object):
         return input, output
 
 
-class PagePrinter(object):
+class PageWriter:
 
     def _print_page(self, page, output_file_path):
         try:
@@ -143,7 +137,7 @@ class PagePrinter(object):
             self._print_page(page, output_file_path)
 
 
-class PageRelatedResourceCopier(object):
+class PageRelatedResourceCopier:
 
     def __init__(self):
         self._path_pairs = []
@@ -158,19 +152,30 @@ class PageRelatedResourceCopier(object):
             shutil.copy2(src, dst)
 
 
-class PageSetProcessor(object):
+class PagesProcessor:
 
     _io_path_translator = IOPathTranslator()
     _preprocessor = PagePreprocessor()
-    _printer = PagePrinter()
+    _writer = PageWriter()
 
-    def _process_page(self, page):
+    def _process_page(self, page, paths):
         input, output = self._io_path_translator(page)
         self._preprocessor(page, input, output, self._resource_copier)
-        self._printer(page, output.file_path)
+        self._writer(page, output.file_path)
+        
+        # add to path
+        if output.file_path not in paths and page.can_generate:
+            paths.append(output.file_path)
 
-    def __call__(self, page_set):
+    def __call__(self, pages, paths):
         self._resource_copier = PageRelatedResourceCopier()
-        for page in page_set:
-            self._process_page(page)
+        for page in pages:
+            self._process_page(page, paths)
         self._resource_copier.copy()
+
+
+class SimpleWriter:
+
+    def __call__(self, pages, paths):
+        writer = PagesProcessor()
+        writer(pages, paths)
