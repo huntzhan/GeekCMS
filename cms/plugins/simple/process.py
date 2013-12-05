@@ -14,18 +14,15 @@ from .settings import HOME
 from .settings import ARCHIVE
 
 
-
-def md5_url(html):
-    m = hashlib.md5()
-    m.update(html.encode('utf-8'))
-    return m.hexdigest() + '.html'
+def title2url(title):
+    return title + '.html'
 
 
 def article_handler(fragment, env):
     template = env.get_template('article.html')
     html = template.render(title=fragment.meta['title'],
                            article_html=fragment.html)
-    url = md5_url(html)
+    url = title2url(fragment.meta['title'])
     return url, html
 
 
@@ -45,6 +42,7 @@ def _get_env():
 def article_processor(fragments, pages):
     env = _get_env()
 
+    article_urls = []
     for fragment in fragments:
         if fragment.kind == ARTICLE:
             url, html = article_handler(fragment, env)
@@ -52,6 +50,10 @@ def article_processor(fragments, pages):
             url, html = about_handler(fragment, env)
         else:
             continue
+
+        while url in article_urls:
+            url = url.rstrip('.html') + '_again.html' 
+        article_urls.append(url)
         
         pages.append(
             Page(html, url, fragment.kind, fragment),
@@ -218,3 +220,4 @@ def archive_processor(fragments, pages):
     pages.append(
         Page(html, url, HOME),
     )
+

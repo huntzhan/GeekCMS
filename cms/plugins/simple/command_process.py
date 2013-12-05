@@ -19,7 +19,7 @@ class GitPush(CommandProcessor):
 
     def run(self):
         os.chdir(OUTPUT_DIR)
-        command = """git add --all *
+        command = """git add --all
                      git commit -m 'GeekCMS Update, {}'
                      git push
                   """.format(datetime.now().strftime('%c'))
