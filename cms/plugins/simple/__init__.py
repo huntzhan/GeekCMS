@@ -13,6 +13,7 @@ from .command_process import RunServer
 from .preprocess import del_fragments
 from .process import article_processor
 from .process import home_processor
+from .process import archive_processor
 from .write import SimpleWriter
 
 
@@ -42,7 +43,7 @@ def register_preprocessor():
 
 
 def register_processor():
-    return [article_processor, home_processor]
+    return [article_processor, home_processor, archive_processor]
 
 
 def register_writer():
