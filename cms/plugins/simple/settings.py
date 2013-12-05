@@ -9,8 +9,8 @@ HOME = 'HOME'
 ARCHIVE = 'ARCHIVE'
 
 
-OUTPUT_DIR = '/Users/peter/Data/Project/GeekCMS/GeekCMS/output'
+#OUTPUT_DIR = '/Users/peter/Data/Project/GeekCMS/GeekCMS/output'
 ARTICLE_DIR = '/Users/peter/Data/Project/haoxun.github.io/Article/articles'
 ABOUT_DIR = '/Users/peter/Data/Project/haoxun.github.io/Article/about'
 
-#OUTPUT_DIR = '/Users/peter/Data/Project/haoxun.github.io'
+OUTPUT_DIR = '/Users/peter/Data/Project/haoxun.github.io'

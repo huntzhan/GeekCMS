@@ -27,8 +27,7 @@ def article_handler(fragment, env):
 
 def about_handler(fragment, env):
     template = env.get_template('article.html')
-    html = template.render(title=fragment.meta['title'],
-                           article_html=fragment.html)
+    html = template.render(article_html=fragment.html)
     return 'about.html', html
 
 
