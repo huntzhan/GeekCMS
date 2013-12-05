@@ -1,11 +1,13 @@
 from process_layer import Fragment
 import markdown
 from .extensions.max_depth_toc import MaxDepthTocExtension
+from .extensions.syntax_highlighter import SyntaxHighlighterExtension
 from datetime import datetime
 
 MD_EXTENSIONS = [
     'meta',
     MaxDepthTocExtension(),
+    SyntaxHighlighterExtension(),
 ]
 
 def article_activeness(x):
