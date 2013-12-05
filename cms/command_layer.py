@@ -88,4 +88,3 @@ def process_args(settings, args):
             command_processor.run()
             return False
     return True
-

@@ -4,7 +4,7 @@ import functools
 import collections
 
 from write_layer import SimpleWriter
-from write_layer import url2rel_path
+from utils import url2rel_path
 
 from .settings import OUTPUT_DIR
 

@@ -1,16 +1,6 @@
 import os
 
 
-def url2rel_path(url):
-    rel_path = url.lstrip('/')
-    return rel_path
-
-
-def url2abs_path(root, url):
-    rel_path = url2rel_path(url)
-    return os.path.join(root, rel_path)
-
-
 class SimpleWriter:
 
     def __init__(self, output_path):
