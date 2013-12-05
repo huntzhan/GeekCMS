@@ -10,6 +10,7 @@
 import os
 import re
 
+
 class CommandProcessor:
 
     def doc_elements(self):
@@ -49,7 +50,7 @@ def process_docopt_doc(settings):
         if option:
             options.append(indent4 + option)
         if explanation:
-            explanations.append(indent4 + usage.lstrip(program_name)\
+            explanations.append(indent4 + usage.lstrip(program_name)
                                 + indent2 + explanation)
 
     usage_text = ''

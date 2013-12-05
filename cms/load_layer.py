@@ -4,12 +4,12 @@ import os
 class File:
 
     def __init__(self, abs_path, kind):
-        # be used to classify files, with each being handled by different 
+        # be used to classify files, with each being handled by different
         # processor(s).
         self.kind = kind
         # absolute path
         self.abs_path = abs_path
-        # contents of file, the bytes having been first 
+        # contents of file, the bytes having been first
         # decoded using a platform-dependent encoding
         self.content = self._read_content()
         # in bytes
