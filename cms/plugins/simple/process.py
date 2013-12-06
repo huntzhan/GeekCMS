@@ -197,8 +197,6 @@ def archives_handler(pages, env):
             'url': path_page_mapping[path].url,
             'title': path_page_mapping[path].fragment.meta['title'],
         })
-    from pprint import pprint
-    pprint(article_tree)
     # render to html
     template = env.get_template('archives.html')
     html = template.render(article_tree=article_tree)
