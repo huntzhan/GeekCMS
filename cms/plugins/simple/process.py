@@ -1,4 +1,5 @@
 import os
+import re
 import hashlib
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
@@ -52,7 +53,7 @@ def article_processor(fragments, pages):
             continue
 
         while url in article_urls:
-            url = url.rstrip('.html') + '_again.html' 
+            url = re.sub('.html', '', url) + '_again.html' 
         article_urls.append(url)
         
         pages.append(
@@ -174,7 +175,7 @@ def archives_handler(pages, env):
     common_prefix = os.path.commonprefix(dir_paths)
     if not common_prefix.endswith('/'):
         common_prefix += '/' 
-    if '/' not in ordered_paths[0].lstrip(common_prefix):
+    if '/' not in re.sub(common_prefix, '', ordered_paths[0]):
         # there is only a single topic.
         # go to an upper layer
         common_prefix, _ = os.path.split(common_prefix.rstrip('/'))
@@ -183,7 +184,7 @@ def archives_handler(pages, env):
     # build article tree
     article_tree = {}
     for path in ordered_paths:
-        rel_path = path.lstrip(common_prefix)
+        rel_path = re.sub(common_prefix, '', path)
         head, _ = os.path.split(rel_path)
         dirs = head.split('/')
 
@@ -196,6 +197,8 @@ def archives_handler(pages, env):
             'url': path_page_mapping[path].url,
             'title': path_page_mapping[path].fragment.meta['title'],
         })
+    from pprint import pprint
+    pprint(article_tree)
     # render to html
     template = env.get_template('archives.html')
     html = template.render(article_tree=article_tree)
