@@ -62,14 +62,14 @@ class SyntaxHighlighter(Treeprocessor):
                 yield parent, child
 
     def run(self, root):
-        pattern = re.compile('\[lang=(\w+?)\]') 
+        pattern = re.compile('\[lang=(\w+?)\]')
         scripts = []
         for parent, child in self.iterparent(root):
             # check
             if parent.tag != 'pre':
                 continue
             # ok
-            m = pattern.match(child.text)
+            m = pattern.match(child.text.lstrip())
             if m is not None:
                 # find it!
                 lang = m.group(1).lower()
@@ -127,15 +127,15 @@ class SyntaxHighlighter(Treeprocessor):
               var args = arguments,
                   result = []
                   ;
-                   
+
               for(var i = 0; i < args.length; i++)
             """ + """
                   result.push(args[i].replace('@', '{}'));
             """.format(url + 'scripts/') +  """
-                   
+
               return result
             };
-             
+
             SyntaxHighlighter.autoloader.apply(null, path(
               'applescript            @shBrushAppleScript.js',
               'actionscript3 as3      @shBrushAS3.js',
