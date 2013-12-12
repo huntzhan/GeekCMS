@@ -83,7 +83,6 @@ class SyntaxHighlighter(Treeprocessor):
                 parent.remove(child)
                 parent.text = text
 
-
         if len(scripts) > 0:
             url = 'http://alexgorbatchev.com/pub/sh/current/'
             # necessary js and css
@@ -101,41 +100,34 @@ class SyntaxHighlighter(Treeprocessor):
             core_css_dom.attrib['type'] = 'text/css'
 
             default_theme_dom = ET.Element('link')
-            default_theme_dom.attrib['href'] = url + 'styles/shThemeDefault.css'
+            default_theme_dom.attrib['href'] = url + \
+                'styles/shThemeDefault.css'
             default_theme_dom.attrib['rel'] = 'stylesheet'
             default_theme_dom.attrib['type'] = 'text/css'
 
             fix_style_dom = ET.Element('style')
             fix_style_dom.text = """
             .syntaxhighlighter .container:before, .container:after {
-	        content: none;
-	        display: table;
-	    }
+                content: none;
+                display: table;
+            }
             """
-            # append
-            root.insert(0, fix_style_dom)
-            root.insert(0, default_theme_dom)
-            root.insert(0, core_css_dom)
-            root.insert(0, autoload_dom)
-            root.insert(0, core_js_dom)
 
             # create autoload
             script_dom = ET.Element('script')
             script_dom.attrib['type'] = "text/javascript"
             script_dom.text = """
             function path()
-            {
+            {{
               var args = arguments,
                   result = []
                   ;
 
               for(var i = 0; i < args.length; i++)
-            """ + """
-                  result.push(args[i].replace('@', '{}'));
-            """.format(url + 'scripts/') +  """
+                  result.push(args[i].replace('@', '{url}scripts/'));
 
               return result
-            };
+            }};
 
             SyntaxHighlighter.autoloader.apply(null, path(
               'applescript            @shBrushAppleScript.js',
@@ -164,8 +156,14 @@ class SyntaxHighlighter(Treeprocessor):
               'xml xhtml xslt html    @shBrushXml.js'
             ));
             SyntaxHighlighter.all();
-            """
+            """.format(url=url)
 
+            # add dom
+            root.insert(0, fix_style_dom)
+            root.insert(0, default_theme_dom)
+            root.insert(0, core_css_dom)
+            root.insert(0, autoload_dom)
+            root.insert(0, core_js_dom)
             root.append(script_dom)
         return root
 
