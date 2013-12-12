@@ -1,9 +1,6 @@
-import os
-from datetime import datetime
 from docopt import docopt
 
 from utils import Settings
-
 from load_layer import load
 from process_layer import preprocess
 from process_layer import process

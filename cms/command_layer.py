@@ -1,12 +1,3 @@
-"""
-{1}
-{0}
-
-{2}
-
-{3}
-"""
-
 import os
 import re
 
@@ -35,6 +26,8 @@ class CommandProcessor:
 
 def process_docopt_doc(settings):
     program_name = 'GeekCMS'
+    docopt_doc = "{1}{sep}{0}{sep}{sep}{2}{sep}{sep}{3}"
+
     usages = []
     options = []
     explanations = []
@@ -72,14 +65,15 @@ def process_docopt_doc(settings):
             os.linesep.join(explanations)
         )
 
-    doc = __doc__.format(
+    doc = docopt_doc.format(
         indent4 + program_name,
         usage_text,
         option_text,
         explanation_text,
+        sep=os.linesep,
     )
 
-    return re.sub(os.linesep + r'{2,999}', os.linesep * 2, doc)
+    return re.sub(os.linesep + r'{2,4}', os.linesep * 2, doc)
 
 
 def process_args(settings, args):

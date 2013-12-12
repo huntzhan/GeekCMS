@@ -54,6 +54,7 @@ script_mapping = {
     'html': 'shBrushXml.js',
 }
 
+
 class SyntaxHighlighter(Treeprocessor):
 
     def iterparent(self, root):
