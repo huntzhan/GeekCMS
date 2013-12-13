@@ -1,18 +1,16 @@
 import os
 import re
-import hashlib
-from jinja2 import Environment
-from jinja2 import FileSystemLoader
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
+from jinja2 import Environment
+from jinja2 import FileSystemLoader
 from process_layer import Page
 from utils import get_module_path
 
 from .settings import ARTICLE
 from .settings import ABOUT
 from .settings import HOME
-from .settings import ARCHIVE
 
 
 def title2url(title):
@@ -53,9 +51,9 @@ def article_processor(fragments, pages):
             continue
 
         while url in article_urls:
-            url = re.sub('.html', '', url) + '_again.html' 
+            url = re.sub('.html', '', url) + '_again.html'
         article_urls.append(url)
-        
+
         pages.append(
             Page(html, url, fragment.kind, fragment),
         )
@@ -91,7 +89,12 @@ def home_processor(fragments, pages):
     )
 
 
-def construct_article_tree(article_tree, dirs):
+ROOT = 'root'
+TOPIC = 'topic'
+PAGE = 'page'
+
+
+def expand_article_tree(article_tree, dirs):
     cur_node = article_tree
     for dir in dirs:
         if dir in cur_node:
@@ -103,9 +106,25 @@ def construct_article_tree(article_tree, dirs):
     return cur_node
 
 
-ROOT = 'root'
-TOPIC = 'topic'
-PAGE = 'page'
+def construct_article_tree(path_page_mapping,
+                           ordered_paths,
+                           common_prefix):
+    article_tree = {}
+    for path in ordered_paths:
+        rel_path = re.sub(common_prefix, '', path)
+        head, _ = os.path.split(rel_path)
+        dirs = head.split('/')
+
+        cur_node = expand_article_tree(article_tree, dirs)
+        if None not in cur_node:
+            cur_node[None] = []
+
+        cur_node[None].append({
+            'path': path,
+            'url': path_page_mapping[path].url,
+            'title': path_page_mapping[path].fragment.meta['title'],
+        })
+    return article_tree
 
 
 def construct_xml_tree(xml_parent, article_parent):
@@ -124,15 +143,7 @@ def construct_xml_tree(xml_parent, article_parent):
             construct_xml_tree(topic, sub_article_parent)
 
 
-@article_filter
-def archives_handler(pages, env):
-    pages = sorted(
-        pages,
-        key=lambda x: x.fragment.meta['post_time'],
-        reverse=False,
-    )
-
-    # using abs_path to identify an item.
+def construct_raw_paths_and_path_page_mapping(pages):
     path_page_mapping = {}
     raw_paths = []
     for page in pages:
@@ -140,9 +151,12 @@ def archives_handler(pages, env):
         path_page_mapping[file.abs_path] = page
         raw_paths.append(file.abs_path)
 
-    # load xml
-    module_path = get_module_path(archives_handler)
+    return path_page_mapping, raw_paths
+
+
+def load_xml(module_path):
     xml_name = 'xml_archive'
+
     xml_path = os.path.join(module_path, xml_name)
     try:
         with open(xml_path) as f:
@@ -151,7 +165,21 @@ def archives_handler(pages, env):
     except:
         old_xml = ET.Element(ROOT)
 
-    # generate a ordered_paths for generating archives.
+    return xml_path, old_xml
+
+
+def generate_xml(article_tree, xml_path):
+    new_xml = ET.Element(ROOT)
+    construct_xml_tree(new_xml, article_tree)
+
+    raw_xml = ET.tostring(new_xml, encoding='UTF-8')
+    reparse = minidom.parseString(raw_xml)
+    xml_str = reparse.toprettyxml(' ' * 4, os.linesep, 'UTF-8')
+    with open(xml_path, 'wb') as f:
+        f.write(xml_str)
+
+
+def construct_ordered_paths(raw_paths, old_xml):
     ordered_paths = []
     for node in old_xml.iter():
         if node.tag != PAGE:
@@ -163,55 +191,64 @@ def archives_handler(pages, env):
             raw_paths.remove(path)
     # extend new pages.
     ordered_paths.extend(raw_paths)
+    return ordered_paths
 
-    # using ordered paths to generate archive page
-    # remove common prefix
-    
-    # first remove the tail of paths.
+
+def get_common_prefix(ordered_paths):
     dir_paths = []
     for head, tail in map(os.path.split, ordered_paths):
         dir_paths.append(head)
 
+    # all aritcles should shoulde be placed in a single dir,
+    # which is the root of the article tree.
+    # leaf of the article tree represents article, while dir
+    # represents topic.
     common_prefix = os.path.commonprefix(dir_paths)
     if not common_prefix.endswith('/'):
-        common_prefix += '/' 
+        common_prefix += '/'
     if '/' not in re.sub(common_prefix, '', ordered_paths[0]):
         # there is only a single topic.
         # go to an upper layer
         common_prefix, _ = os.path.split(common_prefix.rstrip('/'))
         common_prefix += '/'
 
+    return common_prefix
+
+
+@article_filter
+def archives_handler(pages, env):
+    pages = sorted(
+        pages,
+        key=lambda x: x.fragment.meta['post_time'],
+        reverse=False,
+    )
+
+    # using abs_path to identify an item.
+    path_page_mapping, raw_paths = \
+        construct_raw_paths_and_path_page_mapping(pages)
+
+    # load xml
+    module_path = get_module_path(archives_handler)
+    xml_path, old_xml = load_xml(module_path)
+
+    # generate a ordered_paths for generating archives.
+    ordered_paths = construct_ordered_paths(raw_paths, old_xml)
+
+    # using ordered paths to generate archive page
+    common_prefix = get_common_prefix(ordered_paths)
+
     # build article tree
-    article_tree = {}
-    for path in ordered_paths:
-        rel_path = re.sub(common_prefix, '', path)
-        head, _ = os.path.split(rel_path)
-        dirs = head.split('/')
-
-        cur_node = construct_article_tree(article_tree, dirs)
-        if None not in cur_node:
-            cur_node[None] = []
-
-        cur_node[None].append({
-            'path': path,
-            'url': path_page_mapping[path].url,
-            'title': path_page_mapping[path].fragment.meta['title'],
-        })
-    # render to html
-    template = env.get_template('archives.html')
-    html = template.render(article_tree=article_tree)
+    article_tree = construct_article_tree(
+        path_page_mapping,
+        ordered_paths,
+        common_prefix,
+    )
 
     # using ordered paths to generate xml
-    new_xml = ET.Element(ROOT)
-    construct_xml_tree(new_xml, article_tree)
-
-    raw_xml = ET.tostring(new_xml, encoding='UTF-8')
-    reparse = minidom.parseString(raw_xml)
-    xml_str = reparse.toprettyxml(' '*4, os.linesep, 'UTF-8')
-    with open(xml_path, 'wb') as f:
-        f.write(xml_str)
-
-    # DONE
+    generate_xml(article_tree, xml_path)
+    # render to html and return
+    template = env.get_template('archives.html')
+    html = template.render(article_tree=article_tree)
     return 'archive.html', html
 
 
@@ -221,4 +258,3 @@ def archive_processor(fragments, pages):
     pages.append(
         Page(html, url, HOME),
     )
-

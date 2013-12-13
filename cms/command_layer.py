@@ -25,6 +25,10 @@ class CommandProcessor:
 
 
 def process_docopt_doc(settings):
+    indent4 = ' ' * 4
+    indent2 = ' ' * 2
+    indent1 = ' ' * 1
+
     program_name = 'GeekCMS'
     docopt_doc = "{1}{sep}{0}{sep}{sep}{2}{sep}{sep}{3}"
 
@@ -35,10 +39,11 @@ def process_docopt_doc(settings):
     for command_processor in settings.command_processors:
         usage, option, explanation = command_processor.doc_elements()
 
-        indent4 = ' ' * 4
-        indent2 = ' ' * 2
-        indent1 = ' ' * 1
-        assert usage
+        try:
+            assert usage
+        except Exception as e:
+            raise e
+
         usages.append(indent4 + program_name + indent1 + usage)
         if option:
             options.append(indent4 + option)

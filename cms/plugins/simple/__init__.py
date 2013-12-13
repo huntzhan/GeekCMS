@@ -1,12 +1,9 @@
 from load_layer import SimpleLoader
 from .settings import ARTICLE
 from .settings import ABOUT
-from .settings import HOME
-from .settings import ARCHIVE
 from .settings import ARTICLE_DIR
 from .settings import ABOUT_DIR
 from .settings import AVALIABLE_EXTENSIONS
-from .settings import OUTPUT_DIR
 
 from .command_process import GitPush
 from .command_process import RunServer
@@ -22,7 +19,7 @@ def register_command_processor():
 
 
 def register_loader():
-    
+
     article_loader = SimpleLoader(
         ARTICLE_DIR,
         AVALIABLE_EXTENSIONS,

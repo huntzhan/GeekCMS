@@ -43,7 +43,7 @@ class Settings:
             elif hasattr(plugin_name, '__call__'):
                 plugin = plugin_name
 
-            # make iterable
+            # ensure iterable
             if hasattr(plugin, '__iter__'):
                 pass
             else:
