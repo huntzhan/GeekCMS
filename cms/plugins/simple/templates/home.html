@@ -4,11 +4,17 @@
 	{% for page in pages %}
 		<div class="row">
 				<div class="col-md-8">
-					<h3><a href="{{ page.url }}">{{ page.fragment.meta['title'] }}</a></h3>
+					<h3><a href="{{ page['url'] }}">{{ page['title'] }}</a></h3>
 				</div>
 				<div class="col-md-4">
-					<h3>{{ page.fragment.meta['post_time'].strftime('%Y-%m-%d') }}</h3>
+					<h3>{{ page['post_time'].strftime('%Y-%m-%d') }}</h3>
 				</div>
 		</div>
+		<div class="row">
+			<blockquote>
+				<p>{{page['brief_content']}}</p>
+			</blockquote>
+		</div>
+
 	{% endfor %}
 {% endblock %}
