@@ -3,6 +3,7 @@ import re
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 from html.parser import HTMLParser
+from collections import OrderedDict
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
@@ -172,7 +173,7 @@ def expand_article_tree(article_tree, dirs):
 def construct_article_tree(path_page_mapping,
                            ordered_paths,
                            common_prefix):
-    article_tree = {}
+    article_tree = OrderedDict()
     for path in ordered_paths:
         rel_path = re.sub(common_prefix, '', path)
         head, _ = os.path.split(rel_path)
