@@ -2,13 +2,13 @@ import os
 import re
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
-from html.parser import HTMLParser
 from collections import OrderedDict
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from process_layer import Page
 from utils import get_module_path
+from .html2text import html2text
 
 from .settings import ARTICLE
 from .settings import ABOUT
@@ -71,50 +71,15 @@ def article_filter(func):
     return _wrap
 
 
-class _DeHTMLParser(HTMLParser):
-    UNAVALIABLE_TAGS = ['script', 'style', 'link', 'div', 'h1', 'h2']
+def genenrate_text_from_html(html):
+    MAX_LINES = 10
+    raw_text = html2text(html)
+    text_list = []
+    for line in filter(lambda x: bool(x),
+                       raw_text.split(os.linesep)):
+        text_list.append(line)
+    return os.linesep.join(text_list[:MAX_LINES])
 
-    def __init__(self):
-        HTMLParser.__init__(self)
-        self.ok = True
-        self.__text = []
-
-    def handle_data(self, data):
-        text = data.strip()
-        if len(text) > 0 and self.ok:
-            text = re.sub('[ \t\r\n]+', ' ', text)
-            self.__text.append(text + ' ')
-
-    def handle_starttag(self, tag, attrs):
-        if tag in self.UNAVALIABLE_TAGS:
-            self.ok = False
-            return
-
-        if tag == 'p':
-            self.__text.append('\n\n')
-        elif tag == 'br':
-            self.__text.append('\n')
-
-    def handle_startendtag(self, tag, attrs):
-        if tag == 'br':
-            self.__text.append('\n\n')
-
-    def handle_endtag(self, tag):
-        if tag in self.UNAVALIABLE_TAGS:
-            self.ok = True
-
-    def text(self):
-        return ''.join(self.__text).strip()
-
-
-def dehtml(text):
-    try:
-        parser = _DeHTMLParser()
-        parser.feed(text)
-        parser.close()
-        return parser.text()
-    except:
-        return text
 
 
 @article_filter
@@ -132,11 +97,8 @@ def home_handler(pages, env):
         formated_page['title'] = page.fragment.meta['title']
         formated_page['post_time'] = page.fragment.meta['post_time']
 
-        # extract brief content
-        MAX_WORDS_NUM = 500
-        brief_content = dehtml(page.fragment.html)[:MAX_WORDS_NUM]
-        brief_content = re.sub('\s+', ' ', brief_content)
-        formated_page['brief_content'] = brief_content + '......'
+        brief_content = genenrate_text_from_html(page.fragment.html)
+        formated_page['brief_content'] = brief_content
 
         formated_pages.append(formated_page)
 
