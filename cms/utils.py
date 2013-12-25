@@ -4,33 +4,35 @@ import inspect
 import configuration
 
 
+plugins_func_name_mapping = (
+    ('command_processors',
+     configuration.COMMAND_PROCESSORS,
+     'register_command_processor'),
+
+    ('loaders',
+     configuration.LOADERS,
+     'register_loader'),
+
+    ('preprocessors',
+     configuration.PREPROCESSORS,
+     'register_preprocessor'),
+
+    ('processors',
+     configuration.PROCESSORS,
+     'register_processor'),
+
+    ('writers',
+     configuration.WRITERS,
+     'register_writer'),
+)
+
+
 class Settings:
 
     def __init__(self):
-        self.command_processors = self._load_plugins(
-            configuration.COMMAND_PROCESSORS,
-            'register_command_processor',
-        )
-
-        self.loaders = self._load_plugins(
-            configuration.LOADERS,
-            'register_loader',
-        )
-
-        self.preprocessors = self._load_plugins(
-            configuration.PREPROCESSORS,
-            'register_preprocessor',
-        )
-
-        self.processors = self._load_plugins(
-            configuration.PROCESSORS,
-            'register_processor',
-        )
-
-        self.writers = self._load_plugins(
-            configuration.WRITERS,
-            'register_writer',
-        )
+        for attr, plugins, func_name in plugins_func_name_mapping:
+            loaded_plugins = self._load_plugins(plugins, func_name)
+            setattr(self, attr, loaded_plugins)
 
     def _load_plugins(self, plugin_names, func_name):
         plugins = []
@@ -38,15 +40,12 @@ class Settings:
             if isinstance(plugin_name, str):
                 module = importlib.import_module('plugins.' + plugin_name)
                 plugin = getattr(module, func_name)()
-
             # check callable
             elif hasattr(plugin_name, '__call__'):
                 plugin = plugin_name
 
             # ensure iterable
-            if hasattr(plugin, '__iter__'):
-                pass
-            else:
+            if not hasattr(plugin, '__iter__'):
                 plugin = [plugin]
 
             plugins.extend(plugin)
