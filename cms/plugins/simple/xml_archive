@@ -14,4 +14,7 @@
         <page path="/Users/haoxun/Data/Project/haoxun.github.io/Article/articles/GeekCMS，一个轻量级的内容管理系统/技术细节.md" title="GeekCMS技术细节 v0.2.1" url="GeekCMS技术细节 v0.2.1.html"/>
         <page path="/Users/haoxun/Data/Project/haoxun.github.io/Article/articles/GeekCMS，一个轻量级的内容管理系统/geekcms_release_history.md" title="GeekCMS Release History" url="GeekCMS Release History.html"/>
     </topic>
+    <topic name="技术杂谈">
+        <page path="/Users/haoxun/Data/Project/haoxun.github.io/Article/articles/技术杂谈/wget制作website mirror.md" title="使用wget制作website mirror" url="使用wget制作website mirror.html"/>
+    </topic>
 </root>

@@ -73,13 +73,16 @@ def article_filter(func):
 
 def genenrate_text_from_html(html):
     MAX_LINES = 10
+    MAX_WORDS = 300
+
     raw_text = html2text(html)
     text_list = []
     for line in filter(lambda x: bool(x),
                        raw_text.split(os.linesep)):
         text_list.append(line)
-    return os.linesep.join(text_list[:MAX_LINES])
 
+    text = os.linesep.join(text_list[:MAX_LINES])
+    return text[:MAX_WORDS]
 
 
 @article_filter
