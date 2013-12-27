@@ -1,34 +1,18 @@
-class Fragment:
+from utils import BaseData
+
+
+class Fragment(BaseData):
     """
-    HTML fragment.
+    Mainly for the storage of temporary data,
+    such as html fragment compiled from markdown.
     """
-    def __init__(self, html, meta, kind, file=None):
-        self.html = html
-        self.meta = meta
-        self.kind = kind
-        self.file = file
+    def __init__(self, mark, data):
+        super().__init__(mark, data)
 
 
-class Page:
+class Product(BaseData):
     """
-    HTML Pages.
+    Storing data for output.
     """
-    def __init__(self, html, url, kind, fragment=None):
-        self.html = html
-        self.url = url
-        self.kind = kind
-        self.fragment = fragment
-
-
-def preprocess(settings, files):
-    fragments = []
-    for preprocessor in settings.preprocessors:
-        preprocessor(files, fragments)
-    return fragments
-
-
-def process(settings, fragments):
-    pages = []
-    for processor in settings.processors:
-        processor(fragments, pages)
-    return pages
+    def __init__(self, mark, data):
+        super().__init__(mark, data)

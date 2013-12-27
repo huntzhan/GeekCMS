@@ -1,19 +1,21 @@
+from collections import namedtuple
+
 from docopt import docopt
 
 from utils import Settings
-from load_layer import load
-from process_layer import preprocess
-from process_layer import process
-from write_layer import write
 from command_layer import process_docopt_doc
 from command_layer import process_args
 
 
 def default(settings):
-    files = load(settings)
-    fragments = preprocess(settings, files)
-    pages = process(settings, fragments)
-    write(settings, pages)
+    data_set = namedtuple(
+        "DataSet",
+        ['files', ''],
+    )
+
+    for plugins in settings.classified_plugins:
+        for plugin in plugins:
+            plugin(data_set)
 
 
 if __name__ == '__main__':

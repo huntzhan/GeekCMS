@@ -3,7 +3,6 @@ import shutil
 import functools
 import collections
 
-from write_layer import SimpleWriter
 from utils import url2rel_path
 
 from .settings import OUTPUT_DIR
@@ -162,7 +161,7 @@ class PagesProcessor:
         input, output = self._io_path_translator(page)
         self._preprocessor(page, input, output, self._resource_copier)
         self._writer(page, output.file_path)
-        
+
         # add to path
         if output.file_path not in paths and page.can_generate:
             paths.append(output.file_path)

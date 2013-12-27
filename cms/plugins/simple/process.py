@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
-from process_layer import Page
+#from process_layer import Page
 from utils import get_module_path
 from .html2text import html2text
 
@@ -57,7 +57,7 @@ def article_processor(fragments, pages):
         article_urls.append(url)
 
         pages.append(
-            Page(html, url, fragment.kind, fragment),
+            #Page(html, url, fragment.kind, fragment),
         )
 
 
@@ -114,7 +114,7 @@ def home_processor(fragments, pages):
     env = _get_env()
     url, html = home_handler(pages, env)
     pages.append(
-        Page(html, url, HOME),
+        #Page(html, url, HOME),
     )
 
 
@@ -285,5 +285,5 @@ def archive_processor(fragments, pages):
     env = _get_env()
     url, html = archives_handler(pages, env)
     pages.append(
-        Page(html, url, HOME),
+        #Page(html, url, HOME),
     )
