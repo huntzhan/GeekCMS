@@ -4,14 +4,14 @@
 # register_command_processor
 # that returns a callable.
 COMMAND_PROCESSORS = [
-    'simple',
+    'default',
 ]
 
 # plugin package's __init__.py should contain a func named
 # register_loader
 # that returns a callable.
 LOADERS = [
-    'simple',
+    'default',
 ]
 
 # plugin package's __init__.py should contain a func named
@@ -19,14 +19,14 @@ LOADERS = [
 # that returns a callable.
 PREPROCESSORS = [
     'markdown',
-    'simple',
+    'default',
 ]
 
 # plugin package's __init__.py should contain a func named
 # register_processor
 # that returns a callable.
 PROCESSORS = [
-    'simple',
+    'default',
 ]
 
 # plugin package's __init__.py should contain a func named
@@ -39,5 +39,5 @@ POSTPROCESSORS = [
 # register_writer
 # that returns a callable.
 WRITERS = [
-    'simple',
+    'default',
 ]
