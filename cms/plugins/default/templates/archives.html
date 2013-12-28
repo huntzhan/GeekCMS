@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% macro display_article_tree(dir) %}
+	<ul>
+		{% if none in dir %}
+			{% for file in dir[none] %}
+				<li>
+					<h4>
+						<a href="{{ file['url']|urlencode }}">{{ file['title'] }}</a>
+					</h4>
+				</li>
+			{% endfor %}
+		{% else %}
+			{% for dir_name, sub_dir in dir.items() %}
+				<li>
+					<h3>{{ dir_name }}</h3>
+					{{ display_article_tree(sub_dir) }}
+				</li>
+			{% endfor %}
+		{% endif %}
+	</ul>
+{% endmacro %}
+
+{% block content %}
+	{{ display_article_tree(article_tree) }}
+{% endblock %}
