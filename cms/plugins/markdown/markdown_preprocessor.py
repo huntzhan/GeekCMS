@@ -1,8 +1,9 @@
-from process_layer import Fragment
+from datetime import datetime
 import markdown
+from process_layer import Fragment
 from .extensions.max_depth_toc import MaxDepthTocExtension
 from .extensions.syntax_highlighter import SyntaxHighlighterExtension
-from datetime import datetime
+
 
 MD_EXTENSIONS = [
     'meta',
@@ -10,11 +11,13 @@ MD_EXTENSIONS = [
     SyntaxHighlighterExtension(),
 ]
 
+
 def article_activeness(x):
     if x[0].lower() == 'false':
         return False
     else:
         return True
+
 
 meta_processor = [
     ('title', 'title', lambda x: x[0]),
@@ -25,8 +28,16 @@ meta_processor = [
 
 class MarkdownPreprocessor:
 
+    # avaliable markdown extentions
     exts = [
+        '.markdown',
+        '.mdown',
+        '.mkdn',
         '.md',
+        '.mkd',
+        '.mdwn',
+        '.mdtxt',
+        '.mdtext',
     ]
 
     def _process_meta(self, raw_meta):
@@ -39,18 +50,23 @@ class MarkdownPreprocessor:
                 val = processor(data)
                 meta[cls_attr] = val
             except Exception as e:
+                # implemented later
                 raise e
         return meta
 
-    def __call__(self, files, fragments):
-        for file in files:
+    def __call__(self, data_set):
+        for file in data_set.files:
             # check markdown file
             if file.extension not in MarkdownPreprocessor.exts:
                 continue
             # ok
             md = markdown.Markdown(extensions=MD_EXTENSIONS)
-            html = md.convert(file.content)
+            html = md.convert(file.data)
             meta = self._process_meta(md.Meta)
 
-            fragment = Fragment(html, meta, file.kind, file)
-            fragments.append(fragment)
+            fragment = Fragment(file.mark, html)
+            # add meta attribute
+            fragment.meta = meta
+            # make one-to-one connection
+            fragment.file = file
+            data_set.fragments.append(fragment)

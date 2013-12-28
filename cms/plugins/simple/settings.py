@@ -1,6 +1,14 @@
-AVALIABLE_EXTENSIONS = [
+AVALIABLE_MD_EXTENSIONS = [
+    '.markdown',
+    '.mdown',
+    '.mkdn',
     '.md',
+    '.mkd',
+    '.mdwn',
+    '.mdtxt',
+    '.mdtext',
 ]
+
 
 ARTICLE = 'ARTICLE'
 ABOUT = 'ABOUT'

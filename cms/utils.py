@@ -55,8 +55,7 @@ class Settings:
                 except Exception as e:
                     # module might not exist
                     # function might not exist
-                    print("ERROR:", e)
-                    continue
+                    raise e
 
             # check callable
             elif hasattr(plugin_name, '__call__'):

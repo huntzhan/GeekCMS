@@ -42,6 +42,7 @@ def process_docopt_doc(settings):
         try:
             assert usage
         except Exception as e:
+            print(e)
             raise e
 
         usages.append(indent4 + program_name + indent1 + usage)
@@ -86,5 +87,5 @@ def process_args(settings, args):
         if command_processor.check(args):
             # I'm feeling good.
             command_processor.run()
-            return False
-    return True
+            return True
+    return False

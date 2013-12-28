@@ -6,30 +6,32 @@ from collections import OrderedDict
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
-#from process_layer import Page
+
+from process_layer import Product
 from utils import get_module_path
 from .html2text import html2text
 
 from .settings import ARTICLE
 from .settings import ABOUT
 from .settings import HOME
+from .settings import ARCHIVE
 
 
-def title2url(title):
+def _title2url(title):
     return title + '.html'
 
 
-def article_handler(fragment, env):
+def _article_handler(fragment, env):
     template = env.get_template('article.html')
     html = template.render(title=fragment.meta['title'],
-                           article_html=fragment.html)
-    url = title2url(fragment.meta['title'])
+                           article_html=fragment.data)
+    url = _title2url(fragment.meta['title'])
     return url, html
 
 
-def about_handler(fragment, env):
+def _about_handler(fragment, env):
     template = env.get_template('article.html')
-    html = template.render(article_html=fragment.html)
+    html = template.render(article_html=fragment.data)
     return 'about.html', html
 
 
@@ -40,38 +42,45 @@ def _get_env():
     return env
 
 
-def article_processor(fragments, pages):
+def article_processor(data_set):
     env = _get_env()
 
     article_urls = []
-    for fragment in fragments:
-        if fragment.kind == ARTICLE:
-            url, html = article_handler(fragment, env)
-        elif fragment.kind == ABOUT:
-            url, html = about_handler(fragment, env)
+    for fragment in data_set.fragments:
+        if fragment.mark == ARTICLE:
+            url, html = _article_handler(fragment, env)
+        elif fragment.mark == ABOUT:
+            url, html = _about_handler(fragment, env)
         else:
             continue
 
+        # assure url to be unique
         while url in article_urls:
             url = re.sub('.html', '', url) + '_again.html'
         article_urls.append(url)
 
-        pages.append(
-            #Page(html, url, fragment.kind, fragment),
-        )
+        # add new page to data_set
+        html_page = Product(fragment.mark, html)
+        html_page.url = url
+        # make one-to-one relations
+        html_page.fragment = fragment
+        data_set.products.append(html_page)
 
 
-def article_filter(func):
+def _article_filter(func):
+    """
+    filter out non-article items.
+    """
     def _wrap(items, *args, **kwargs):
         article_items = items[:]
         for item in items:
-            if item.kind != ARTICLE:
+            if item.mark != ARTICLE:
                 article_items.remove(item)
         return func(article_items, *args, **kwargs)
     return _wrap
 
 
-def genenrate_text_from_html(html):
+def _genenrate_text_from_html(html):
     MAX_LINES = 10
     MAX_WORDS = 300
 
@@ -85,8 +94,8 @@ def genenrate_text_from_html(html):
     return text[:MAX_WORDS]
 
 
-@article_filter
-def home_handler(pages, env):
+@_article_filter
+def _home_handler(pages, env):
     pages = sorted(
         pages,
         key=lambda x: x.fragment.meta['post_time'],
@@ -100,7 +109,7 @@ def home_handler(pages, env):
         formated_page['title'] = page.fragment.meta['title']
         formated_page['post_time'] = page.fragment.meta['post_time']
 
-        brief_content = genenrate_text_from_html(page.fragment.html)
+        brief_content = _genenrate_text_from_html(page.fragment.data)
         formated_page['brief_content'] = brief_content
 
         formated_pages.append(formated_page)
@@ -110,12 +119,12 @@ def home_handler(pages, env):
     return 'index.html', html
 
 
-def home_processor(fragments, pages):
+def home_processor(data_set):
     env = _get_env()
-    url, html = home_handler(pages, env)
-    pages.append(
-        #Page(html, url, HOME),
-    )
+    url, html = _home_handler(data_set.products, env)
+    home_page = Product(HOME, html)
+    home_page.url = url
+    data_set.products.append(home_page)
 
 
 ROOT = 'root'
@@ -123,7 +132,7 @@ TOPIC = 'topic'
 PAGE = 'page'
 
 
-def expand_article_tree(article_tree, dirs):
+def _expand_article_tree(article_tree, dirs):
     cur_node = article_tree
     for dir in dirs:
         if dir in cur_node:
@@ -135,16 +144,16 @@ def expand_article_tree(article_tree, dirs):
     return cur_node
 
 
-def construct_article_tree(path_page_mapping,
-                           ordered_paths,
-                           common_prefix):
+def _construct_article_tree(path_page_mapping,
+                            ordered_paths,
+                            common_prefix):
     article_tree = OrderedDict()
     for path in ordered_paths:
         rel_path = re.sub(common_prefix, '', path)
         head, _ = os.path.split(rel_path)
         dirs = head.split('/')
 
-        cur_node = expand_article_tree(article_tree, dirs)
+        cur_node = _expand_article_tree(article_tree, dirs)
         if None not in cur_node:
             cur_node[None] = []
 
@@ -156,7 +165,7 @@ def construct_article_tree(path_page_mapping,
     return article_tree
 
 
-def construct_xml_tree(xml_parent, article_parent):
+def _construct_xml_tree(xml_parent, article_parent):
     if None in article_parent:
         # leaf
         for item in article_parent[None]:
@@ -169,10 +178,10 @@ def construct_xml_tree(xml_parent, article_parent):
         for topic_name, sub_article_parent in article_parent.items():
             topic = ET.SubElement(xml_parent, TOPIC)
             topic.attrib['name'] = topic_name
-            construct_xml_tree(topic, sub_article_parent)
+            _construct_xml_tree(topic, sub_article_parent)
 
 
-def construct_raw_paths_and_path_page_mapping(pages):
+def _construct_raw_paths_and_path_page_mapping(pages):
     path_page_mapping = {}
     raw_paths = []
     for page in pages:
@@ -183,7 +192,7 @@ def construct_raw_paths_and_path_page_mapping(pages):
     return path_page_mapping, raw_paths
 
 
-def load_xml(module_path):
+def _load_xml(module_path):
     xml_name = 'xml_archive'
 
     xml_path = os.path.join(module_path, xml_name)
@@ -197,9 +206,9 @@ def load_xml(module_path):
     return xml_path, old_xml
 
 
-def generate_xml(article_tree, xml_path):
+def _generate_xml(article_tree, xml_path):
     new_xml = ET.Element(ROOT)
-    construct_xml_tree(new_xml, article_tree)
+    _construct_xml_tree(new_xml, article_tree)
 
     raw_xml = ET.tostring(new_xml, encoding='UTF-8')
     reparse = minidom.parseString(raw_xml)
@@ -208,7 +217,7 @@ def generate_xml(article_tree, xml_path):
         f.write(xml_str)
 
 
-def construct_ordered_paths(raw_paths, old_xml):
+def _construct_ordered_paths(raw_paths, old_xml):
     ordered_paths = []
     for node in old_xml.iter():
         if node.tag != PAGE:
@@ -223,7 +232,7 @@ def construct_ordered_paths(raw_paths, old_xml):
     return ordered_paths
 
 
-def get_common_prefix(ordered_paths):
+def _get_common_prefix(ordered_paths):
     dir_paths = []
     for head, tail in map(os.path.split, ordered_paths):
         dir_paths.append(head)
@@ -244,8 +253,8 @@ def get_common_prefix(ordered_paths):
     return common_prefix
 
 
-@article_filter
-def archives_handler(pages, env):
+@_article_filter
+def _archives_handler(pages, env):
     pages = sorted(
         pages,
         key=lambda x: x.fragment.meta['post_time'],
@@ -254,36 +263,36 @@ def archives_handler(pages, env):
 
     # using abs_path to identify an item.
     path_page_mapping, raw_paths = \
-        construct_raw_paths_and_path_page_mapping(pages)
+        _construct_raw_paths_and_path_page_mapping(pages)
 
     # load xml
-    module_path = get_module_path(archives_handler)
-    xml_path, old_xml = load_xml(module_path)
+    module_path = get_module_path(_archives_handler)
+    xml_path, old_xml = _load_xml(module_path)
 
     # generate a ordered_paths for generating archives.
-    ordered_paths = construct_ordered_paths(raw_paths, old_xml)
+    ordered_paths = _construct_ordered_paths(raw_paths, old_xml)
 
     # using ordered paths to generate archive page
-    common_prefix = get_common_prefix(ordered_paths)
+    common_prefix = _get_common_prefix(ordered_paths)
 
     # build article tree
-    article_tree = construct_article_tree(
+    article_tree = _construct_article_tree(
         path_page_mapping,
         ordered_paths,
         common_prefix,
     )
 
     # using ordered paths to generate xml
-    generate_xml(article_tree, xml_path)
+    _generate_xml(article_tree, xml_path)
     # render to html and return
     template = env.get_template('archives.html')
     html = template.render(article_tree=article_tree)
     return 'archive.html', html
 
 
-def archive_processor(fragments, pages):
+def archive_processor(data_set):
     env = _get_env()
-    url, html = archives_handler(pages, env)
-    pages.append(
-        #Page(html, url, HOME),
-    )
+    url, html = _archives_handler(data_set.products, env)
+    archive_page = Product(ARCHIVE, html)
+    archive_page.url = url
+    data_set.products.append(archive_page)

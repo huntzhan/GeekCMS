@@ -1,8 +1,8 @@
 
-def del_fragments(files, fragments):
-    for fragment in fragments:
+def del_fragments(data_set):
+    for fragment in data_set.fragments:
         try:
-            if fragment.meta['active'] == False:
-                fragments.remove(fragment)
+            if not fragment.meta['active']:
+                data_set.fragments.remove(fragment)
         except:
             continue

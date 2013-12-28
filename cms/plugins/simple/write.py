@@ -6,6 +6,10 @@ import collections
 from utils import url2rel_path
 
 from .settings import OUTPUT_DIR
+from .settings import ARTICLE
+from .settings import ABOUT
+from .settings import HOME
+from .settings import ARCHIVE
 
 
 class PagePreprocessor:
@@ -126,7 +130,7 @@ class PageWriter:
     def _print_page(self, page, output_file_path):
         try:
             with open(output_file_path, 'w') as f:
-                html = page.html
+                html = page.data
                 f.write(html)
         except Exception as e:
             raise e
@@ -153,13 +157,19 @@ class PageRelatedResourceCopier:
 
 class PagesProcessor:
 
-    _io_path_translator = IOPathTranslator()
-    _preprocessor = PagePreprocessor()
-    _writer = PageWriter()
+    def __init__(self):
+        self._io_path_translator = IOPathTranslator()
+        self._preprocessor = PagePreprocessor()
+        self._writer = PageWriter()
 
     def _process_page(self, page, paths):
         input, output = self._io_path_translator(page)
-        self._preprocessor(page, input, output, self._resource_copier)
+        self._preprocessor(
+            page,
+            input,
+            output,
+            self._resource_copier
+        )
         self._writer(page, output.file_path)
 
         # add to path
@@ -175,6 +185,10 @@ class PagesProcessor:
 
 class SimpleWriter:
 
-    def __call__(self, pages, paths):
+    def __call__(self, data_set):
         writer = PagesProcessor()
-        writer(pages, paths)
+        pages = []
+        for product in data_set.products:
+            if product.mark in [ARTICLE, ABOUT, HOME, ARCHIVE]:
+                pages.append(product)
+        writer(pages, data_set.generated_paths)
