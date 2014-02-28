@@ -4,6 +4,7 @@ GeekCMS, short for 'geeky content management system', is a tool that can generat
 
 # Architecture
 
+## Lesson Learned
 The system is designed with highly configurable property, meaning that the procedure of generating static pages is seperated into components, and the user could adjust the behavior by replacing some components of the system.
 
 After developing GeekCMS v0.2.1, which became a big ball of mud, I've learned a lot about what should not be done and what should be done:
@@ -14,3 +15,47 @@ After developing GeekCMS v0.2.1, which became a big ball of mud, I've learned a 
 1. GeekCMS v0.2.1 do not support python 2.x. Considering the popularity of python 2.x, the system should support it in following versions.
 
 In short, the future work will foucs on the 'plug and play' protocals.
+
+## Basic Concept
+
+### Project
+
+GeekCMS would be finally deploied as a tool with command line interface(CLI), which essentially reads some text files and 'compile' it into another text files(mainly HTML pages). With the inspiration of Django's CLI and for better organization of input and output files, GeekCMS would maintained a directory containing all files required to generate a website, including user created articles and generated HTML static pages. Such directory is treated as a **projcet**.
+
+Sturcture of a project is as follow:
+	
+	example_project/
+		themes/
+			...
+		states/
+			...
+		inputs/
+			...
+		outputs/
+			...
+		settings
+
+Brief explanations of each item:
+
+* **themes**: Different from pelican and any other static page generators, _themes_ contains not only the templates but also some **codes** for formatting the website. Increasing flexibility is the mainly purpose of such design. If the system allows only Jinja2 templates to be placed in _themes_(methods has been done by pelican), the system must well defined kinds of templates and tags could be rendered by different kinds of templates, which limits the ways to generated web page and leads to a huge configuration file.
+* **states**: As many static page generators, such as pelican, are considered stateless, which means the program would not keep the internal state of some data, such as the ordering of articles, insteads generating contents by all the input materials(such as markdown text files with meta-data). But there's sort of demands with which the program should not be stateless, such as ordering the articles in archive page(my classmate once tried to alert the ordering of artilces by changing the date meta-header in pelican). _states_ should be the directory keeping such information.
+* **inputs**: _inputs_ holds text files with contents to be embeded in website.
+* **outputs**: All final products would be placed in _outputs_.
+* **settings**: A text file that contains necessary settings of the project.
+
+_themes_ and _settings_ should be created and packaged by developers. Users of packages should just alerting the values in _settings_ and create some text files in _inputs_ following the introduction of the package developers.
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
