@@ -51,17 +51,17 @@ Runtime procedure of GeekCMS is divided into several componets(or periods), whic
 
 Runtime components are as follow:
 
-1. **pre_load**: the component prepares data for the _in\_load_ component, for example, the component might generate a list consists of paths to be loaded based on files' last modified time, or extract a tree representing the relations of text files.
+1. **pre_load**: the component prepares data for the *in_load* component, for example, the component might generate a list consists of paths to be loaded based on files' last modified time, or extract a tree representing the relations of text files.
 1. **in_load**: the component loads files from operating system(or somewhere else), and might process the content of files, such as transforming markdown to html.
-1. **post_load**: the component cotains bussiness should be performed after _in\_load_, for example, translating the title of each articles into english.
-1. **pre_process**: the component prepares data for _in\_proecess_, such as initiating pages with url.
+1. **post_load**: the component cotains bussiness should be performed after *in_load*, for example, translating the title of each articles into english.
+1. **pre_process**: the component prepares data for *in_proecess*, such as initiating pages with url.
 1. **in_process**: the component might generate the content of static pages.
-1. **post_process**: the component contains bussiness should be performed after _in\_proecess_, for example, generating a sitemap of website.
-1. **pre_write**: the component prepares data for _in\_write_, for example, coping the static resources.
+1. **post_process**: the component contains bussiness should be performed after *in_proecess*, for example, generating a sitemap of website.
+1. **pre_write**: the component prepares data for *in_write*, for example, coping the static resources.
 1. **in_write**: the component might write static pages to output directory.
-1. **post_write**: the component contains bussiness should be performed after _in\_write_, for example, compressing data with gzip.
+1. **post_write**: the component contains bussiness should be performed after *in_write*, for example, compressing data with gzip.
 
-Above nine components build up the **default procedure**, in which the text files would be transformed to several static web pages. The components can be classified into three layers, load/process/write. Notice that the distinction of components in a layer is vague, for instance, a plugin transforming markdown to html can be placed in _in\_load_, _post\_load_ or _pre\_process_, depending on developers understanding of components' semantics.
+Above nine components build up the **default procedure**, in which the text files would be transformed to several static web pages. The components can be classified into three layers, load/process/write. Notice that the distinction of components in a layer is vague, for instance, a plugin transforming markdown to html can be placed in *in_load*, *post_load* or *pre_process*, depending on developers understanding of components' semantics.
 
 Besides, there is kind of behaviors can not be classified into above nine components, such as automatically uploading static pages to a git repo. Such behavior could be implemented as **extended procedures**.
 
