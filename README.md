@@ -9,12 +9,12 @@ The system is designed with highly configurable property, meaning that the proce
 
 After developing GeekCMS v0.2.1, which became a big ball of mud, I've learned a lot about what should not be done and what should be done:
 
-1. GeekCMS v0.2.1 is such a platform that can not do anything without plugins, the procedure from loading text file to writing static pages is performed by the logic of plugins. The idea behides that is 'plug and play', which is just fine, but since GeekCMS v0.2.1 do not well define the protocals related to plugins, the system finally became a joke. Interfaces and protocals must be set up for 'plug and play' architecture, by trading of some unnecessary freedom.
+1. GeekCMS v0.2.1 is such a platform that can not do anything without plugins, the procedure from loading text file to writing static pages is performed by the logic of plugins. The idea behides that is plugin based architecture, which is just fine, but since GeekCMS v0.2.1 do not well define the protocals related to plugins, the system finally became a joke. Interfaces and protocals must be set up for plugin based architecture, by trading of some unnecessary freedom.
 1. Lacks of definition of how user interacts with the system, including how user starts a project, how developer deploys their theme.
 1. Lacks of unit test, which should be done.
 1. GeekCMS v0.2.1 do not support python 2.x. Considering the popularity of python 2.x, the system should support it in following versions.
 
-In short, the future work will foucs on the 'plug and play' protocals.
+In short, the future work will foucs on the plugin protocals of the program.
 
 ## Basic Concept
 
@@ -43,9 +43,44 @@ Brief explanations of each item:
 * **outputs**: All final products would be placed in _outputs_.
 * **settings**: A text file that contains necessary settings of the project.
 
-_themes_ and _settings_ should be created and packaged by developers. Users of packages should just alerting the values in _settings_ and create some text files in _inputs_ following the introduction of the package developers.
+_themes_ and _settings_ should be created and packaged by developers. Users of packages should just alerting the values in _settings_ and create some text files in _inputs_ following the introduction of the package developers. Detials of these items would be covered latter.
+
+### Runtime Component
+
+Runtime procedure of GeekCMS is divided into several componets(or periods), which would be sequentially executed by GeekCMS. Each runtime component could contain zero or more plugins, details of that would be covered latter.
+
+Runtime components are as follow:
+
+1. **pre_load**: the component prepares data for the _in_load_ component, for example, the component might generate a list consists of paths to be loaded based on files' last modified time, or extract a tree representing the relations of text files.
+1. **in_load**: the component loads files from operating system(or somewhere else), and might process the content of files, such as transforming markdown to html.
+1. **post_load**: the component cotains bussiness should be performed after _in_load_, for example, translating the title of each articles into english.
+1. **pre_process**: the component prepares data for _in_proecess_, such as initiating pages with url.
+1. **in_process**: the component might generate the content of static pages.
+1. **post_process**: the component contains bussiness should be performed after _in_proecess_, for example, generating a sitemap of website.
+1. **pre_write**: the component prepares data for _in_write_, for example, coping the static resources.
+1. **in_write**: the component might write static pages to output directory.
+1. **post_write**: the component contains bussiness should be performed after _in_write_, for example, compressing data with gzip.
+
+Above nine components build up the **default procedure**, in which the text files would be transformed to several static web pages. The components can be classified into three layers, load/process/write. Notice that the distinction of components in a layer is vague, for instance, a plugin transforming markdown to html can be placed in _in_load_, _post_load_ or _pre_process_, depending on developers understanding of components' semantics.
+
+Besides, there is kind of behaviors can not be classified into above nine components, such as automatically uploading static pages to a git repo. Such behavior could be implemented as **extended procedures**.
 
 
+## Details of GeekCMS
+
+### Responsibility of GeekCMS
+
+### Plugin Protocal
+
+### Theme Development
+
+### Settings
+
+# QuickStart
+
+## A Simple Theme
+
+## Examples
 
 
 
