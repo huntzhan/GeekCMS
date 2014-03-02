@@ -37,7 +37,7 @@ Sturcture of a project is as follow:
 
 Brief explanations of each item:
 
-* **themes**: Different from pelican and any other static page generators, _themes_ contains not only the templates but also some **codes** for formatting the website. Increasing flexibility is the mainly purpose of such design. If the system allows only Jinja2 templates to be placed in _themes_(methods has been done by pelican), the system must well defined kinds of templates and tags could be rendered by different kinds of templates, which limits the ways to generated web page and leads to a huge configuration file.
+* **themes**: Different from pelican and any other static page generators, _themes_ contains not only the templates but also some **codes** for formatting the website. Increasing flexibility is the purpose of such design. If the system allows only Jinja2 templates to be placed in _themes_(methods has been done by pelican), the system must well defined kinds of templates and tags could be rendered by different kinds of templates, which limits the ways to generated web page and leads to a huge configuration file.
 * **states**: As many static page generators, such as pelican, are considered stateless, which means the program would not keep the internal state of some data, such as the ordering of articles, insteads generating contents by all the input materials(such as markdown text files with meta-data). But there's sort of demands with which the program should not be stateless, such as ordering the articles in archive page(my classmate once tried to alert the ordering of artilces by changing the date meta-header in pelican). _states_ should be the directory keeping such information.
 * **inputs**: _inputs_ holds text files with contents to be embeded in website.
 * **outputs**: All final products would be placed in _outputs_.
@@ -45,36 +45,63 @@ Brief explanations of each item:
 
 _themes_ and _settings_ should be created and packaged by developers. Users of packages should just alerting the values in _settings_ and create some text files in _inputs_ following the introduction of the package developers. Detials of these items would be covered latter.
 
-### Runtime Component
+### Layer, Runtime Component and Plugin
 
-Runtime procedure of GeekCMS is divided into several componets(or periods), which would be sequentially executed by GeekCMS. Each runtime component could contain zero or more plugins, details of that would be covered latter.
+Runtime procedure of GeekCMS is divided into several componets(or periods), which would be sequentially executed by GeekCMS. Each runtime component could contain zero or more **plugins**, details of that would be covered latter.
 
-Runtime components are as follow:
+All runtime components of GeekCMS are as follow:
 
-1. **pre_load**: the component prepares data for the *in_load* component, for example, the component might generate a list consists of paths to be loaded based on files' last modified time, or extract a tree representing the relations of text files.
-1. **in_load**: the component loads files from operating system(or somewhere else), and might process the content of files, such as transforming markdown to html.
-1. **post_load**: the component cotains bussiness should be performed after *in_load*, for example, translating the title of each articles into english.
-1. **pre_process**: the component prepares data for *in_proecess*, such as initiating pages with url.
-1. **in_process**: the component might generate the content of static pages.
-1. **post_process**: the component contains bussiness should be performed after *in_proecess*, for example, generating a sitemap of website.
-1. **pre_write**: the component prepares data for *in_write*, for example, coping the static resources.
-1. **in_write**: the component might write static pages to output directory.
-1. **post_write**: the component contains bussiness should be performed after *in_write*, for example, compressing data with gzip.
+1. **load layer**:
+	1. **pre_load**: prepares data for the *in_load* component, for example, the component might generate a list consists of paths to be loaded based on files' last modified time, or extract a tree representing the relations of text files.
+	1. **in_load**: loads files from operating system(or somewhere else), and might process the content of files, such as transforming markdown to html.
+	1. **post_load**: cotains bussiness should be performed after *in_load*, for example, translating the title of each articles into english.
+1. **process layer**:
+	1. **pre_process**: prepares data for *in_proecess*, such as initiating pages with url.
+	1. **in_process**: might generate the content of static pages.
+	1. **post_process**: contains bussiness should be performed after *in_proecess*, for example, generating a sitemap of website.
+1. **write layer**:
+	1. **pre_write**: prepares data for *in_write*, for example, coping the static resources.
+	1. **in_write**: might write static pages to output directory.
+	1. **post_write**: contains bussiness should be performed after *in_write*, for example, compressing data with gzip.
 
-Above nine components build up the **default procedure**, in which the text files would be transformed to several static web pages. The components can be classified into three layers, load/process/write. Notice that the distinction of components in a layer is vague, for instance, a plugin transforming markdown to html can be placed in *in_load*, *post_load* or *pre_process*, depending on developers understanding of components' semantics.
+Above nine components build up the **default procedure**, in which the text files would be transformed to several static web pages. The components can be classified into three **layers**, load/process/write. Notice that the distinction of components **within a layer** is vague, for instance, a plugin transforming markdown to html can be placed in *in_load*, *post_load*, depending on developers understanding of components' semantics. By dividing a layer into three components, theme developer could well control the sequence of plugin execution.
 
 Besides, there is kind of behaviors can not be classified into above nine components, such as automatically uploading static pages to a git repo. Such behavior could be implemented as **extended procedures**.
+
+As mentioned above, runtime components are classified into three *layers*, *load*, *process* and *write*. Information of layers are as follow:
+
+* **Exection**: Layers are exectured in order, **load >> process >> write**, very simple and intuitive.
+* **Communication**: Actually, layers could be viewed as implementation of pipe-and-filter architecture.
+	* **load** layer would deliver some **resources** and **messages** to *process* layer.
+	* **process** layer would process **resource** and deal with **messages**, generating **products** and some **messages**, and deliver them to **write** layer.
+	* **write** layer would process **products** and deal with **messages**, and execute logic related to generate output files.
+	
+	**resource**, **product**, **message** are data structures provided by GeekCMS.
 
 
 ## Details of GeekCMS
 
-### Responsibility of GeekCMS
+### Responsibility of GeekCMS and Themes
+
+From the view of theme(in short, **theme = templates + plugins**) developers, GeekCMS is a *platform* with various tools and protocals which would be helpful for plugin and theme development. It's important to know that, GeekCMS is a **plugin driven tool. 
+Without a theme, GeekCMS can do nothing!** 
 
 ### Plugin Protocal
 
+#### Responsibility of Plugin
+
+#### Plugin Registration
+
+#### Plugin Execution Order
+
+#### Tools Provided By GeekCMS
+
 ### Theme Development
 
-### Settings
+#### File Organization
+
+#### Settings
+
 
 # QuickStart
 
