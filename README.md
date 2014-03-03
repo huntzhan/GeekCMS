@@ -72,7 +72,7 @@ The components can be classified into three **layers**, load/process/write. Noti
 
 As mentioned, runtime components are classified into three *layers*, *load*, *process* and *write*. Information of layers are as follow:
 
-* **Execution**: Layers are exectured in order, **load >> process >> write**, very simple and intuitive.
+* **Execution**: Layers are exectured in order, **load --> process --> write**, very simple and intuitive.
 * **Communication**: Actually, layers could be viewed as implementation of pipe-and-filter architecture.
 	* **load** layer would deliver some **resources** and **messages** to *process* layer.
 	* **process** layer would process **resource** and deal with **messages**, generating **products** and some other **messages**, and deliver them to **write** layer.
@@ -153,13 +153,27 @@ Syntax of ordering plugins within a runtime component is as follow:
 	binary_relation_expr ::= plugin_name (left_relation | right_relation) plugin_name
 	unary_plugin_expr ::= (plugin_name [left_relation]) | ([right_relation] plugin_name)
 	
-	left_relation ::= '<<' decimalinteger
-	right_relation ::= decimalinteger '>>'
+	left_relation ::= '<<' [decimalinteger]
+	right_relation ::= [decimalinteger] '>>'
 	component_name ::= identifier
 	plugin_name ::= identifier
 	
 *identifier*, *decimalinteger* and *NEWLINE* are corresponding to the definitions in [Python Lexical Analysis](http://docs.python.org/3/reference/lexical_analysis.html).
-	
+
+Semantics of above syntax are as follow:
+
+* "pre_load: my_loader": register plugin "my_loader" to component "pre_load".
+* "pre_load: my_loader << my_filter": register plugins "my_loader" and "my_filter" to component "pre_load", with "my_loader" being executed **before** "my_filter".
+* "pre_load: my_filter >> my_loader": has the same meaning as "pre_load: my_loader << my_filter".
+* consider following expression:
+* 		pre_load:
+			loader_a <<0 loader_b
+			loader_c <<1 loader_b
+the execution order would be "loader_c" --> "loader_a" --> "loader_b". "<<" is equivalent to "<<0", and "<< decimalinteger" is equivalent to "decimalinteger >>".
+* "pre_load: my_loader <<": means "my_loader" would be executed before the other plugins within a component, unless another relation such as "anther_loader <<1" is established.
+* "pre_load: >> my_filter": reverse meaning of "pre_load: my_loader <<".
+
+
 #### Tools Provided By GeekCMS
 
 #### File Organization
