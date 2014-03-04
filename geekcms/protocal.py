@@ -90,6 +90,26 @@ class _UniqueKeyDict(UserDict):
         super().__setitem__(key, val)
 
 
+class _PluginIndex:
+
+    def __init__(self, theme_name, plugin_name):
+        self.theme_name = theme_name
+        self.plugin_name = plugin_name
+        self.unique_key = '{}.{}'.format(theme_name, plugin_name)
+
+    def __hash__(self):
+        return self.unique_key.__hash__()
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
+
+    def __repr__(self):
+        return '_PluginIndex({}, {})'.format(
+            self.theme_name,
+            self.plugin_name,
+        )
+
+
 class _SetUpPlugin(type):
 
     plugin_mapping = _UniqueKeyDict()
@@ -106,8 +126,8 @@ class _SetUpPlugin(type):
 
     @classmethod
     def _register_plugin(cls, theme_name, plugin_name, plugin_cls):
-        unique_key = '{}.{}'.format(theme_name, plugin_name)
-        cls.plugin_name[unique_key] = plugin_cls
+        plugin_index = _PluginIndex(theme_name, plugin_name)
+        cls.plugin_name[plugin_index.unique_key] = plugin_cls
 
     @classmethod
     def _data_filter(cls, func=None, owner=''):
@@ -125,9 +145,7 @@ class _SetUpPlugin(type):
         # find theme_name and plugin_name
         theme_name = cls._find_case_insensitive_name(_THEME, namespace)
         plugin_name = cls._find_case_insensitive_name(_PLUGIN, namespace)
-        # generate class(plugin)
         plugin_cls = type.__new__(cls, cls_name, bases, namespace, **kargs)
-        # register plugin
         cls._register_plugin(theme_name, plugin_name, plugin_cls)
         # filter data for run method.
         process_func = getattr(plugin_cls, _PLUGIN_RUN_METHOD_NAME)
