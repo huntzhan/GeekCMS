@@ -8,7 +8,6 @@ from inspect import signature
 _THEME = 'theme'
 _PLUGIN = 'plugin'
 _PLUGIN_RUN_METHOD_NAME = 'run'
-_OWNER = 'owner'
 
 
 class _Manager:
@@ -41,7 +40,7 @@ class _ManagerProxyWithOwner:
                 continue
             method = getattr(manager, method_name)
             sig = signature(method)
-            if _OWNER in sig.parameters:
+            if 'owner' in sig.parameters:
                 partial_method = partial(method, owner=owner)
             else:
                 partial_method = method
@@ -57,7 +56,7 @@ class _SetUpObjectManager(type):
         return result_cls
 
 
-class _Base(metaclass=_SetUpObjectManager):
+class _BaseAsset(metaclass=_SetUpObjectManager):
 
     def __init__(self, owner, *args, **kwargs):
         text = 'In Base Class: owner: {}, *args: {}; **kwargs: {}'
@@ -70,27 +69,19 @@ class _Base(metaclass=_SetUpObjectManager):
         return _ManagerProxyWithOwner(owner, cls.objects)
 
 
-class Resource(_Base):
+class Resource(_BaseAsset):
     pass
 
 
-class Product(_Base):
+class Product(_BaseAsset):
     pass
 
 
-class Message(_Base):
+class Message(_BaseAsset):
     pass
 
 
-class _UniqueKeyDict(UserDict):
-
-    def __setitem__(self, key, val):
-        if key in self:
-            raise Exception('Key Already Existed!.')
-        super().__setitem__(key, val)
-
-
-class _PluginIndex:
+class PluginIndex:
 
     def __init__(self, theme_name, plugin_name):
         self.theme_name = theme_name
@@ -104,10 +95,18 @@ class _PluginIndex:
         return hash(self) == hash(other)
 
     def __repr__(self):
-        return '_PluginIndex({}, {})'.format(
+        return 'PluginIndex({}, {})'.format(
             self.theme_name,
             self.plugin_name,
         )
+
+
+class _UniqueKeyDict(UserDict):
+
+    def __setitem__(self, key, val):
+        if key in self:
+            raise Exception('Key Already Existed!.')
+        super().__setitem__(key, val)
 
 
 class _SetUpPlugin(type):
@@ -126,7 +125,7 @@ class _SetUpPlugin(type):
 
     @classmethod
     def _register_plugin(cls, theme_name, plugin_name, plugin_cls):
-        plugin_index = _PluginIndex(theme_name, plugin_name)
+        plugin_index = PluginIndex(theme_name, plugin_name)
         cls.plugin_name[plugin_index.unique_key] = plugin_cls
 
     @classmethod
@@ -154,3 +153,17 @@ class _SetUpPlugin(type):
             _PLUGIN_RUN_METHOD_NAME,
             cls._data_filter(owner=theme_name)(process_func),
         )
+
+
+class BasePlugin(metaclass=_SetUpPlugin):
+
+    def __init__(*args, **kwargs):
+        raise Exception('In BasePlugin')
+
+    @classmethod
+    def get_manager_bind_with_plugin(cls, other_cls):
+        assert issubclass(other_cls, _BaseAsset)
+        fixed_manager = other_cls.get_manager_with_fixed_owner(
+            getattr(cls, _THEME),
+        )
+        return fixed_manager
