@@ -3,7 +3,7 @@ from collections import defaultdict
 from geekcms import protocal
 
 
-class _ManagerTest(unittest.TestCase):
+class ManagerTest(unittest.TestCase):
 
     def setUp(self):
         class TestClass:
@@ -12,7 +12,7 @@ class _ManagerTest(unittest.TestCase):
 
         self.TestClass = TestClass
         self.owner = 'testowner'
-        self.manager = protocal._Manager(TestClass)
+        self.manager = protocal.Manager(TestClass)
 
     def test_create(self):
         item = self.manager.create(self.owner)

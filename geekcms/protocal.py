@@ -38,11 +38,22 @@ class PluginIndex:
         )
 
 
-class _Manager:
+class Manager:
 
     def __init__(self, target_cls):
         self._target_cls = target_cls
         self._container = defaultdict(list)
+
+    def __get__(self, instance, cls):
+        if instance:
+            raise Exception('Manager Can Not Be Called From Instances')
+        return self
+
+    def __set__(self, instance, val):
+        raise Exception('Manager Can Not Be Replaced.')
+
+    def __delete__(self, instance):
+        raise Exception('Manager Can Not Be Deleted.')
 
     def create(self, owner, *args, **kwargs):
         new_item = self._target_cls(owner, *args, **kwargs)
@@ -64,7 +75,7 @@ class _Manager:
         return list(self._container)
 
 
-class _ManagerProxyWithOwner:
+class ManagerProxyWithOwner:
 
     def __init__(self, owner, manager):
 
@@ -85,7 +96,7 @@ class SetUpObjectManager(type):
     def __new__(cls, *args, **kwargs):
         result_cls = type.__new__(cls, *args, **kwargs)
         # set up manager.
-        result_cls.objects = _Manager(result_cls)
+        result_cls.objects = Manager(result_cls)
         return result_cls
 
 
@@ -99,7 +110,7 @@ class _BaseAsset(metaclass=SetUpObjectManager):
 
     @classmethod
     def get_manager_with_fixed_owner(cls, owner):
-        return _ManagerProxyWithOwner(owner, cls.objects)
+        return ManagerProxyWithOwner(owner, cls.objects)
 
 
 class BaseResource(_BaseAsset):
