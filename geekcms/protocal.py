@@ -117,7 +117,7 @@ class SetUpPlugin(type):
     def _find_case_insensitive_name(cls, target_name, namespace):
         for name, val in namespace.items():
             if name.lower() == target_name:
-                return name
+                return val
         else:
             raise Exception(
                 'Can Not Find {}.'.format(target_name),
@@ -147,16 +147,17 @@ class SetUpPlugin(type):
                 self,
                 list(processed_assets),
                 list(processed_messages),
-                *args,
-                **kwargs,
+                *args, **kwargs
             )
         return run
 
-    def __new__(cls, cls_name, bases, namespace, **kargs):
+    @classmethod
+    def _set_up_plugin(cls):
+        # init class
+        plugin_cls = type.__new__(cls, cls_name, bases, namespace, **kargs)
         # find theme_name and plugin_name
         theme_name = cls._find_case_insensitive_name(_THEME, namespace)
         plugin_name = cls._find_case_insensitive_name(_PLUGIN, namespace)
-        plugin_cls = type.__new__(cls, cls_name, bases, namespace, **kargs)
         cls._register_plugin(theme_name, plugin_name, plugin_cls)
         # filter data for run method.
         process_func = getattr(plugin_cls, _PLUGIN_RUN_METHOD_NAME)
@@ -165,6 +166,14 @@ class SetUpPlugin(type):
             _PLUGIN_RUN_METHOD_NAME,
             cls._data_filter(owner=theme_name)(process_func),
         )
+        return plugin_cls
+
+    def __new__(cls, cls_name, bases, namespace, **kargs):
+        # skip plugin registration
+        if cls_name == 'BasePlugin':
+            return type.__new__(cls, cls_name, bases, namespace, **kargs)
+        else:
+            return cls._set_up_plugin()
 
 
 class BasePlugin(metaclass=SetUpPlugin):
