@@ -168,9 +168,7 @@ class SetUpPlugin(type):
         return run
 
     @classmethod
-    def _set_up_plugin(cls):
-        # init class
-        plugin_cls = super().__new__(cls, cls_name, bases, namespace, **kargs)
+    def _set_up_plugin(cls, plugin_cls):
         # find theme_name and plugin_name
         theme_name = cls._find_case_insensitive_name(_THEME, namespace)
         plugin_name = cls._find_case_insensitive_name(_PLUGIN, namespace)
@@ -182,14 +180,13 @@ class SetUpPlugin(type):
             _PLUGIN_RUN_METHOD_NAME,
             cls._data_filter(owner=theme_name)(process_func),
         )
-        return plugin_cls
 
-    def __new__(cls, cls_name, bases, namespace, **kargs):
-        # skip plugin registration
-        if cls_name == 'BasePlugin':
-            return super().__new__(cls, cls_name, bases, namespace, **kargs)
-        else:
-            return cls._set_up_plugin()
+    def __new__(cls, cls_name, *args, **kargs):
+
+        plugin_cls = super().__new__(cls, cls_name, *args, **kargs)
+        if cls_name != 'BasePlugin':
+            cls._set_up_plugin(plugin_cls)
+        return plugin_cls
 
 
 class BasePlugin(metaclass=SetUpPlugin):
