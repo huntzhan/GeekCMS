@@ -62,6 +62,15 @@ class ManagerTest(unittest.TestCase):
         self.assertListEqual(proxy.keys(), [self.owner])
 
 
+class PluginIndexTest(unittest.TestCase):
+
+    def test_plugin(self):
+        item_1 = protocal.PluginIndex('a', 'b')
+        item_2 = protocal.PluginIndex('a', 'c')
+        self.assertEqual(item_1, 'a.b')
+        self.assertNotEqual(item_1, item_2)
+
+
 class _BaseAssetTest(unittest.TestCase):
 
     def setUp(self):
