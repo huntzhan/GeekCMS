@@ -54,9 +54,14 @@ class _Manager:
 
     def remove(self, target):
         self._container[target.owner].remove(target)
+        if not self._container[target.owner]:
+            del self._container[target.owner]
 
     def filter(self, owner):
         return self._container[owner]
+
+    def keys(self):
+        return list(self._container)
 
 
 class _ManagerProxyWithOwner:
