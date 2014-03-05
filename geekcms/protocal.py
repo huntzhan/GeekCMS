@@ -94,7 +94,7 @@ class ManagerProxyWithOwner:
 class SetUpObjectManager(type):
 
     def __new__(cls, *args, **kwargs):
-        result_cls = type.__new__(cls, *args, **kwargs)
+        result_cls = super().__new__(cls, *args, **kwargs)
         # set up manager.
         result_cls.objects = Manager(result_cls)
         return result_cls
@@ -170,7 +170,7 @@ class SetUpPlugin(type):
     @classmethod
     def _set_up_plugin(cls):
         # init class
-        plugin_cls = type.__new__(cls, cls_name, bases, namespace, **kargs)
+        plugin_cls = super().__new__(cls, cls_name, bases, namespace, **kargs)
         # find theme_name and plugin_name
         theme_name = cls._find_case_insensitive_name(_THEME, namespace)
         plugin_name = cls._find_case_insensitive_name(_PLUGIN, namespace)
@@ -187,7 +187,7 @@ class SetUpPlugin(type):
     def __new__(cls, cls_name, bases, namespace, **kargs):
         # skip plugin registration
         if cls_name == 'BasePlugin':
-            return type.__new__(cls, cls_name, bases, namespace, **kargs)
+            return super().__new__(cls, cls_name, bases, namespace, **kargs)
         else:
             return cls._set_up_plugin()
 
