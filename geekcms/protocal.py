@@ -10,6 +10,34 @@ _PLUGIN = 'plugin'
 _PLUGIN_RUN_METHOD_NAME = 'run'
 
 
+class _UniqueKeyDict(UserDict):
+
+    def __setitem__(self, key, val):
+        if key in self:
+            raise Exception('Key Already Existed!.')
+        super().__setitem__(key, val)
+
+
+class PluginIndex:
+
+    def __init__(self, theme_name, plugin_name):
+        self.theme_name = theme_name
+        self.plugin_name = plugin_name
+        self.unique_key = '{}.{}'.format(theme_name, plugin_name)
+
+    def __hash__(self):
+        return self.unique_key.__hash__()
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
+
+    def __repr__(self):
+        return 'PluginIndex({}, {})'.format(
+            self.theme_name,
+            self.plugin_name,
+        )
+
+
 class _Manager:
 
     def __init__(self, target_cls):
@@ -47,7 +75,7 @@ class _ManagerProxyWithOwner:
             setattr(self, method_name, partial_method)
 
 
-class _SetUpObjectManager(type):
+class SetUpObjectManager(type):
 
     def __new__(cls, *args, **kwargs):
         result_cls = type.__new__(cls, *args, **kwargs)
@@ -56,7 +84,7 @@ class _SetUpObjectManager(type):
         return result_cls
 
 
-class _BaseAsset(metaclass=_SetUpObjectManager):
+class _BaseAsset(metaclass=SetUpObjectManager):
 
     def __init__(self, owner, *args, **kwargs):
         text = 'In Base Class: owner: {}, *args: {}; **kwargs: {}'
@@ -69,47 +97,19 @@ class _BaseAsset(metaclass=_SetUpObjectManager):
         return _ManagerProxyWithOwner(owner, cls.objects)
 
 
-class Resource(_BaseAsset):
+class BaseResource(_BaseAsset):
     pass
 
 
-class Product(_BaseAsset):
+class BaseProduct(_BaseAsset):
     pass
 
 
-class Message(_BaseAsset):
+class BaseMessage(_BaseAsset):
     pass
 
 
-class PluginIndex:
-
-    def __init__(self, theme_name, plugin_name):
-        self.theme_name = theme_name
-        self.plugin_name = plugin_name
-        self.unique_key = '{}.{}'.format(theme_name, plugin_name)
-
-    def __hash__(self):
-        return self.unique_key.__hash__()
-
-    def __eq__(self, other):
-        return hash(self) == hash(other)
-
-    def __repr__(self):
-        return 'PluginIndex({}, {})'.format(
-            self.theme_name,
-            self.plugin_name,
-        )
-
-
-class _UniqueKeyDict(UserDict):
-
-    def __setitem__(self, key, val):
-        if key in self:
-            raise Exception('Key Already Existed!.')
-        super().__setitem__(key, val)
-
-
-class _SetUpPlugin(type):
+class SetUpPlugin(type):
 
     plugin_mapping = _UniqueKeyDict()
 
@@ -134,10 +134,22 @@ class _SetUpPlugin(type):
             return partial(cls._data_filter, owner=owner)
 
         # begin decorating
+        def check_owner(owner):
+            check_func = lambda item: item.owner == owner
+            return check_func
+
         @wraps(func)
-        def run(self, data, *args, **kwargs):
-            processed_data = [item for item in data if data.owner == owner]
-            return func(self, processed_data, *args, **kwargs)
+        def run(self, assets, messages, *args, **kwargs):
+            check_func = check_owner(owner)
+            processed_assets = filter(check_func, assets)
+            processed_messages = filter(check_func, messages)
+            return func(
+                self,
+                list(processed_assets),
+                list(processed_messages),
+                *args,
+                **kwargs,
+            )
         return run
 
     def __new__(cls, cls_name, bases, namespace, **kargs):
@@ -155,7 +167,7 @@ class _SetUpPlugin(type):
         )
 
 
-class BasePlugin(metaclass=_SetUpPlugin):
+class BasePlugin(metaclass=SetUpPlugin):
 
     def __init__(*args, **kwargs):
         raise Exception('In BasePlugin')
@@ -167,3 +179,10 @@ class BasePlugin(metaclass=_SetUpPlugin):
             getattr(cls, _THEME),
         )
         return fixed_manager
+
+    def run(self, assets, messages, *args, **kwargs):
+        text = 'In Base Class: assets: {}, messages: {},'
+        '*args: {}; **kwargs: {}'
+        raise Exception(
+            text.format(assets, messages, args, kwargs),
+        )
