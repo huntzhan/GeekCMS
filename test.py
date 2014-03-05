@@ -10,6 +10,9 @@ class ManagerTest(unittest.TestCase):
             def __init__(self, owner):
                 self.owner = owner
 
+            def __repr__(self):
+                return '{}({})'.format('TestCase', self.owner)
+
         self.TestClass = TestClass
         self.owner = 'testowner'
         self.manager = protocal.Manager(TestClass)
@@ -32,7 +35,7 @@ class ManagerTest(unittest.TestCase):
         self.manager.remove(item)
         self.assertEqual(self.manager._container, defaultdict(list))
 
-    def test_filter_keys(self):
+    def test_filter_keys_values(self):
         owner_1 = 'owner_1'
         owner_2 = 'owner_2'
         item_1 = self.manager.create(owner_1)
@@ -43,6 +46,10 @@ class ManagerTest(unittest.TestCase):
         self.assertSetEqual(
             set(self.manager.keys()),
             {owner_1, owner_2},
+        )
+        self.assertSetEqual(
+            set(self.manager.values()),
+            {item_1, item_2},
         )
 
     def test_proxy(self):
@@ -60,6 +67,7 @@ class ManagerTest(unittest.TestCase):
         item = proxy.create()
         self.assertListEqual(proxy.filter(), [item])
         self.assertListEqual(proxy.keys(), [self.owner])
+        self.assertListEqual(proxy.values(), [item])
 
 
 class PluginIndexTest(unittest.TestCase):
@@ -136,6 +144,87 @@ class _BaseAssetTest(unittest.TestCase):
             ResourceTest.objects.create(owner),
             ResourceTest,
         )
+
+
+class PluginTest(unittest.TestCase):
+
+    def setUp(self):
+        protocal.SetUpPlugin.clean_up_registered_plugins()
+
+    def test_plugin_registration(self):
+        theme_name = 'testtheme'
+        plugin_name = 'testplugin'
+
+        class TestPlugin(protocal.BasePlugin):
+            theme = theme_name
+            plugin = plugin_name
+
+            def __init__(self):
+                pass
+
+            def run(self, assets, messages):
+                return assets, messages
+
+        class MissPluginName(protocal.BasePlugin):
+            theme = theme_name
+
+            def __init__(self):
+                pass
+
+            def run(self, assets, messages):
+                return assets, messages
+
+        supposed_plugins = {
+            protocal.PluginIndex(theme_name, plugin_name): TestPlugin,
+            protocal.PluginIndex(theme_name, 'MissPluginName'): MissPluginName,
+        }
+
+        self.assertDictEqual(
+            protocal.get_registered_plugins(),
+            supposed_plugins,
+        )
+
+    def test_assets_filter(self):
+        theme_name = 'a'
+        noise_name = 'b'
+
+        class TestPlugin(protocal.BasePlugin):
+            theme = theme_name
+
+            def __init__(self):
+                pass
+
+            def run(self, resources, messages):
+                return resources, messages
+
+        class TestResource(protocal.BaseResource):
+            def __init__(self, owner):
+                self.owner = owner
+
+        class TestMessage(protocal.BaseMessage):
+            def __init__(self, owner):
+                self.owner = owner
+
+        resource_manager =\
+            TestPlugin.get_manager_bind_with_plugin(TestResource)
+        message_manager =\
+            TestPlugin.get_manager_bind_with_plugin(TestMessage)
+
+        supposed_resources = set()
+        supposed_messages = set()
+        for i in range(10):
+            supposed_resources.add(resource_manager.create())
+            supposed_messages.add(message_manager.create())
+            TestResource.objects.create(noise_name)
+            TestMessage.objects.create(noise_name)
+
+        plugin = TestPlugin()
+        resources, messages = plugin.run(
+            TestResource.objects.values(),
+            TestMessage.objects.values(),
+        )
+        self.assertSetEqual(set(resources), supposed_resources)
+        self.assertSetEqual(set(messages), supposed_messages)
 
 
 if __name__ == '__main__':

@@ -74,6 +74,12 @@ class Manager:
     def keys(self):
         return list(self._container)
 
+    def values(self):
+        result = []
+        for objs in self._container.values():
+            result.extend(objs)
+        return result
+
 
 class ManagerProxyWithOwner:
 
@@ -112,6 +118,9 @@ class _BaseAsset(metaclass=SetUpObjectManager):
     def get_manager_with_fixed_owner(cls, owner):
         return ManagerProxyWithOwner(owner, cls.objects)
 
+    def __repr__(self):
+        return '{}({})'.format(type(self).__name__, self.owner)
+
 
 class BaseResource(_BaseAsset):
     pass
@@ -130,19 +139,20 @@ class SetUpPlugin(type):
     plugin_mapping = _UniqueKeyDict()
 
     @classmethod
+    def clean_up_registered_plugins(cls):
+        cls.plugin_mapping = _UniqueKeyDict()
+
+    @classmethod
     def _find_case_insensitive_name(cls, target_name, namespace):
         for name, val in namespace.items():
             if name.lower() == target_name:
                 return val
-        else:
-            raise Exception(
-                'Can Not Find {}.'.format(target_name),
-            )
+        return None
 
     @classmethod
     def _register_plugin(cls, theme_name, plugin_name, plugin_cls):
         plugin_index = PluginIndex(theme_name, plugin_name)
-        cls.plugin_name[plugin_index.unique_key] = plugin_cls
+        cls.plugin_mapping[plugin_index.unique_key] = plugin_cls
 
     @classmethod
     def _data_filter(cls, func=None, owner=''):
@@ -159,6 +169,7 @@ class SetUpPlugin(type):
             check_func = check_owner(owner)
             processed_assets = filter(check_func, assets)
             processed_messages = filter(check_func, messages)
+
             return func(
                 self,
                 list(processed_assets),
@@ -168,11 +179,19 @@ class SetUpPlugin(type):
         return run
 
     @classmethod
-    def _set_up_plugin(cls, plugin_cls):
+    def _set_up_plugin(cls, plugin_cls, namespace):
         # find theme_name and plugin_name
-        theme_name = cls._find_case_insensitive_name(_THEME, namespace)
-        plugin_name = cls._find_case_insensitive_name(_PLUGIN, namespace)
+        find_name = cls._find_case_insensitive_name
+        theme_name = find_name(_THEME, namespace)
+        plugin_name = find_name(_PLUGIN, namespace)
+        # check avaliable
+        if theme_name is None:
+            raise Exception("Must Add 'theme' As Class Attribute")
+        if plugin_name is None:
+            plugin_name = plugin_cls.__name__
+        # register plugin
         cls._register_plugin(theme_name, plugin_name, plugin_cls)
+
         # filter data for run method.
         process_func = getattr(plugin_cls, _PLUGIN_RUN_METHOD_NAME)
         setattr(
@@ -181,11 +200,13 @@ class SetUpPlugin(type):
             cls._data_filter(owner=theme_name)(process_func),
         )
 
-    def __new__(cls, cls_name, *args, **kargs):
+    def __new__(cls, cls_name, bases, namespace, **kargs):
 
-        plugin_cls = super().__new__(cls, cls_name, *args, **kargs)
+        plugin_cls = super().__new__(cls,
+                                     cls_name, bases, namespace,
+                                     **kargs)
         if cls_name != 'BasePlugin':
-            cls._set_up_plugin(plugin_cls)
+            cls._set_up_plugin(plugin_cls, namespace)
         return plugin_cls
 
 
@@ -208,3 +229,7 @@ class BasePlugin(metaclass=SetUpPlugin):
         raise Exception(
             text.format(assets, messages, args, kwargs),
         )
+
+
+def get_registered_plugins():
+    return dict(SetUpPlugin.plugin_mapping)
