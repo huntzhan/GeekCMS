@@ -37,13 +37,13 @@ Algorithm:
         1.1 Extract left operand, operator and right operand. For expressions
         that only consist of one operand and no operator, for example,
         'x NEWLINE', remove such expressions and keep it for later processing.
-        1.2 Transform 'x [p]>> y' to 'y <<[p] x', then transform '<<' to '<<0'
-        1.3 Transform operand to the form of (theme, plugin), based on
+        1.2 If x is missed, HEAD is added as x; If y is missed, TAIL is added
+        as y;
+        1.3 Transform 'x [p]>> y' to 'y <<[p] x', then transform '<<' to '<<0'
+        1.4 Transform operand to the form of (theme, plugin), based on
         'theme.plugin'. If 'theme.' part is omitted, then automatically
         generate theme with respect to file's directory(where relation
         expressions were loaded).
-        1.4 If x is missed, HEAD is added as x; If y is missed, TAIL is added
-        as y;
         1.5 Init with classes, including items removed in 1.1.
     2. Generate relation groups.
     A relation group: {(x <<p y)| for x, all avaliable (p, y) in expressions}.
@@ -75,6 +75,7 @@ Algorithm:
 
         if left_behind is not empty, then push all its items to order.
         return order
+    4. Remove HEAD and TAIL from order.
 """
 
 

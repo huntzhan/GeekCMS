@@ -20,7 +20,7 @@ setup(
     #         'mgd = mgd.interface:main',
     #     ],
     # },
-    test_suite='tests.test_protocal',
+    test_suite='tests.load_tests',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Programming Language :: Python :: 3',
