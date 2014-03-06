@@ -1,4 +1,10 @@
 *.pyc
-Article
-output
+*.egg-info
+*.swp
+__pycache__
+build
+develop-eggs
+dist
+eggs
+parts
 .DS_Store
