@@ -3,11 +3,13 @@
 Syntax:
     runtime_component ::= component_name (':' | '=') [NEWLINE] plugin_relation*
 
-    plugin_relation ::= binary_relation_expr | unary_relation_expr NEWLINE
+    plugin_relation ::= (binary_relation_expr | unary_relation_expr) NEWLINE
     binary_relation_expr ::= plugin_name
                              (left_relation | right_relation) plugin_name
-    unary_plugin_expr ::= (plugin_name [left_relation])
-                          | ([right_relation] plugin_name)
+    unary_relation_expr ::=   (plugin_name [left_relation])
+                            | ([left_relation] plugin_name)
+                            | ([right_relation] plugin_name)
+                            | (plugin_name [right_relation])
 
     left_relation ::= '<<' [decimalinteger]
     right_relation ::= [decimalinteger] '>>'
@@ -79,18 +81,19 @@ Algorithm:
 """
 
 
-_IDENTIFIER = r'(?P<identifier>[^\d\W]\w*)'
-_RIGHT_OP = r'(?P<right_op>>>)'
-_LEFT_OP = r'(?P<left_op><<)'
-_DECIMAL = r'(?P<decimalinteger>[^0\D]\d*|0+)'
-_LEFT_REL = r'(?P<left_relation>{left_op}{decimalinteger}?)'.format(
-    left_op=_LEFT_OP,
-    decimalinteger=_DECIMAL,
-)
-_RIGHT_REL = r'(?P<right_relation>{decimalinteger}?{right_op})'.format(
-    right_op=_RIGHT_OP,
-    decimalinteger=_DECIMAL,
-)
+# Should be implemented with PLY
+# _PLUGIN_NAME = r'(?P<plugin_name>[^\d\W]\w*)'
+# _RIGHT_OP = r'(?P<right_op>>>)'
+# _LEFT_OP = r'(?P<left_op><<)'
+# _DECIMAL = r'(?P<decimalinteger>[^0\D]\d*|0+)'
+# _LEFT_REL = r'(?P<left_relation>{left_op}{decimalinteger}?)'.format(
+#     left_op=_LEFT_OP,
+#     decimalinteger=_DECIMAL,
+# )
+# _RIGHT_REL = r'(?P<right_relation>{decimalinteger}?{right_op})'.format(
+#     right_op=_RIGHT_OP,
+#     decimalinteger=_DECIMAL,
+# )
 
 
 class SequenceParser:
