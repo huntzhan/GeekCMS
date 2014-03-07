@@ -30,11 +30,11 @@ t_ignore_COMMENT = r'\#.*'
 
 
 def t_error(t):
-    print('Illegal Character: {}'.format(t.value[0]))
+    print("Illegal Character: '{}' in line {}".format(t.value[0], t.lineno))
     t.lexer.skip(1)
 
 lexer = lex.lex(
-    debug=0,
+    # debug=0,
     optimize=1,
     reflags=re.ASCII,
     outputdir=os.path.dirname(__file__),

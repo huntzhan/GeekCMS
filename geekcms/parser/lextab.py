@@ -1,6 +1,6 @@
 # lextab.py. This file automatically created by PLY (version 3.4). Don't edit!
 _tabversion   = '3.4'
-_lextokens    = {'IDENTIFIER': 1, 'LEFT_OP': 1, 'RIGHT_OP': 1, 'DEGREE': 1, 'NEWLINE': 1}
+_lextokens    = {'DEGREE': 1, 'NEWLINE': 1, 'LEFT_OP': 1, 'IDENTIFIER': 1, 'RIGHT_OP': 1}
 _lexreflags   = 256
 _lexliterals  = ''
 _lexstateinfo = {'INITIAL': 'inclusive'}

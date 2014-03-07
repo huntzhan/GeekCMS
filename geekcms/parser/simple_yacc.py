@@ -84,11 +84,23 @@ def p_plugin_name(p):
 
 
 def p_error(p):
-    pass
+    print("Syntax Error: '{}' in line {}".format(p.value, p.lineno))
+    discard = [p.value]
+    while True:
+        token = yacc.token()
+        if token and token.type != 'NEWLINE':
+            discard.append(token.value)
+            continue
+        else:
+            val = '[NEWLINE]' if token else '[EOL]'
+            discard.append(val)
+            break
+    print('Discard: ', ''.join(discard))
+    yacc.restart()
 
 
 parser = yacc.yacc(
-    debug=0,
+    # debug=0,
     optimize=1,
     outputdir=os.path.dirname(__file__),
 )
