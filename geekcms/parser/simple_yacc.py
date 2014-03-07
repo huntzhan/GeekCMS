@@ -3,6 +3,7 @@ from ply import yacc
 from .simple_lex import tokens
 from .utils import PluginRel
 from .utils import PluginExpr
+from .utils import ErrorCollector
 
 
 def p_start(p):
@@ -114,7 +115,7 @@ def p_empty(p):
 
 
 def p_error(p):
-    print("Syntax Error: '{}' in line {}".format(p.value, p.lineno))
+    # print("Syntax Error: '{}' in line {}".format(p.value, p.lineno))
     discard = [p.value]
     while True:
         token = yacc.token()
@@ -125,8 +126,10 @@ def p_error(p):
             val = '[NEWLINE]' if token else '[EOL]'
             discard.append(val)
             break
-    print('Discard: ', ''.join(discard))
-    # TODO: use ErrorCollector to store errors.
+    # print('Discard: ', ''.join(discard))
+    ErrorCollector.add_message(
+        (p.value, p.lineno, ''.join(discard)),
+    )
     yacc.restart()
 
 

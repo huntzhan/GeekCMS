@@ -32,5 +32,27 @@ class PluginExpr:
         return text
 
 
+class _Container:
+
+    def __get__(self, instance, cls):
+        return bool(cls._message_container)
+
+
 class ErrorCollector:
-    pass
+
+    error = _Container()
+    theme_error_mesages = {}
+    _message_container = []
+
+    @classmethod
+    def clean_up(cls):
+        cls._message_container = []
+
+    @classmethod
+    def add_message(cls, message):
+        cls._message_container.append(message)
+
+    @classmethod
+    def archive_messages_with_theme(cls, theme):
+        cls.theme_error_mesages[theme] = cls._message_container
+        cls.clean_up()

@@ -81,22 +81,7 @@ Algorithm:
 """
 
 
-# Should be implemented with PLY
-# _PLUGIN_NAME = r'(?P<plugin_name>[^\d\W]\w*)'
-# _RIGHT_OP = r'(?P<right_op>>>)'
-# _LEFT_OP = r'(?P<left_op><<)'
-# _DECIMAL = r'(?P<decimalinteger>[^0\D]\d*|0+)'
-# _LEFT_REL = r'(?P<left_relation>{left_op}{decimalinteger}?)'.format(
-#     left_op=_LEFT_OP,
-#     decimalinteger=_DECIMAL,
-# )
-# _RIGHT_REL = r'(?P<right_relation>{decimalinteger}?{right_op})'.format(
-#     right_op=_RIGHT_OP,
-#     decimalinteger=_DECIMAL,
-# )
-
-
 class SequenceParser:
 
-    def __init__(self, plain_text):
+    def __init__(self, data):
         pass
