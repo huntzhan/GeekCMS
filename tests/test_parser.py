@@ -66,3 +66,7 @@ class PLYTest(unittest.TestCase):
     def test_parser(self):
         from geekcms.parser.simple_lex import lexer
         from geekcms.parser.simple_yacc import parser
+        from pprint import pprint
+        text = 'a<>d\na<<b'
+        result = parser.parse(text, lexer=lexer)
+        pprint(result)

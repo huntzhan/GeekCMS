@@ -1,77 +1,116 @@
 import os
 from ply import yacc
 from .simple_lex import tokens
+from .utils import PluginRel
+from .utils import PluginExpr
 
 
 def p_start(p):
     '''start : NEWLINE lines end
              | lines end'''
-    pass
+    if len(p) == 4:
+        lines = p[2]
+        end = p[3]
+    elif len(p) == 3:
+        lines = p[1]
+        end = p[2]
+    # check end is avaliable or not
+    if end:
+        lines.append(end)
+    p[0] = lines
 
 
 def p_end(p):
     '''end : plugin_expr
            | empty'''
-    pass
+    p[0] = p[1]
 
 
 def p_lines_expend(p):
     '''lines : lines line_atom
              | empty'''
-    pass
+    if len(p) == 2:
+        p[0] = []
+    elif len(p) == 3:
+        # init a list if lines is None
+        plugin_set = p[1]
+        single_plugin = p[2]
+        plugin_set.append(single_plugin)
+        p[0] = plugin_set
 
 
 def p_line_atom(p):
     'line_atom : plugin_expr NEWLINE'
-    pass
+    p[0] = p[1]
 
 
 def p_plugin_expr_binary(p):
     'plugin_expr : plugin_name relation plugin_name'
-    pass
+    p[0] = PluginExpr(
+        left_operand=p[1],
+        relation=p[2],
+        right_operand=p[3],
+    )
 
 
 def p_plugin_expr_left(p):
     'plugin_expr : plugin_name relation'
-    pass
+    p[0] = PluginExpr(
+        left_operand=p[1],
+        relation=p[2],
+    )
 
 
 def p_plugin_expr_right(p):
     'plugin_expr : relation plugin_name'
-    pass
+    p[0] = PluginExpr(
+        relation=p[1],
+        right_operand=p[2],
+    )
 
 
 def p_plugin_expr_none(p):
     'plugin_expr : plugin_name'
-    pass
+    p[0] = PluginExpr(
+        left_operand=p[1],
+    )
 
 
 def p_relation(p):
     '''relation : left_rel
                 | right_rel'''
-    pass
+    p[0] = p[1]
 
 
 def p_left_rel(p):
     '''left_rel : LEFT_OP
                 | LEFT_OP DEGREE'''
-    pass
+    if len(p) == 2:
+        rel = PluginRel(True, 0)
+    elif len(p) == 3:
+        rel = PluginRel(True, int(p[2]))
+    p[0] = rel
 
 
 def p_right_rel(p):
     '''right_rel : RIGHT_OP
                  | DEGREE RIGHT_OP'''
-    pass
+    if len(p) == 2:
+        rel = PluginRel(False, 0)
+    elif len(p) == 3:
+        rel = PluginRel(False, int(p[1]))
+    p[0] = rel
 
 
 def p_plugin_name(p):
     'plugin_name : IDENTIFIER'
-    pass
+    p[0] = p[1]
 
 
 def p_empty(p):
     'empty :'
-    pass
+    # in order not to fix up with plugin_expr
+    p[0] = None
 
 
 def p_error(p):
@@ -87,6 +126,7 @@ def p_error(p):
             discard.append(val)
             break
     print('Discard: ', ''.join(discard))
+    # TODO: use ErrorCollector to store errors.
     yacc.restart()
 
 
