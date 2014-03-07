@@ -1,8 +1,15 @@
+import os
 import ply.yacc as yacc
+from .simple_lex import tokens
 
 
-def p_lines_newline(p):
-    'lines : NEWLINE lines line_atom'
+def p_start_newline(p):
+    'start : NEWLINE lines'
+    pass
+
+
+def p_start_nonewline(p):
+    'start : lines'
     pass
 
 
@@ -12,7 +19,7 @@ def p_lines_expend(p):
 
 
 def p_lines_line_atom(p):
-    'lines : line_atom'
+    'lines :'
     pass
 
 
@@ -73,3 +80,15 @@ def p_right_rel_degree(p):
 
 def p_plugin_name(p):
     'plugin_name : IDENTIFIER'
+    pass
+
+
+def p_error(p):
+    pass
+
+
+parser = yacc.yacc(
+    debug=0,
+    optimize=1,
+    outputdir=os.path.dirname(__file__),
+)

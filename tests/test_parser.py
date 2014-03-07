@@ -59,3 +59,10 @@ class PreParserTest(unittest.TestCase):
     #     p = self._compile(lib._RIGHT_REL)
     #     result = self._get_match_set(full, 'right_relation', p)
     #     self.assertSetEqual(result, good)
+
+
+class PLYTest(unittest.TestCase):
+
+    def test_parser(self):
+        from geekcms.parser.simple_lex import lexer
+        from geekcms.parser.simple_yacc import parser

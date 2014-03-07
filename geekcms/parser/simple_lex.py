@@ -1,3 +1,4 @@
+import os
 import re
 import ply.lex as lex
 
@@ -32,4 +33,9 @@ def t_error(t):
     print('Illegal Character: {}'.format(t.value[0]))
     t.lexer.skip(1)
 
-lexer = lex.lex(reflags=re.ASCII)
+lexer = lex.lex(
+    debug=0,
+    optimize=1,
+    reflags=re.ASCII,
+    outputdir=os.path.dirname(__file__),
+)
