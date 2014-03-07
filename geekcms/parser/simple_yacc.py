@@ -1,25 +1,23 @@
 import os
-import ply.yacc as yacc
+from ply import yacc
 from .simple_lex import tokens
 
 
-def p_start_newline(p):
-    'start : NEWLINE lines'
+def p_start(p):
+    '''start : NEWLINE lines end
+             | lines end'''
     pass
 
 
-def p_start_nonewline(p):
-    'start : lines'
+def p_end(p):
+    '''end : plugin_expr
+           | empty'''
     pass
 
 
 def p_lines_expend(p):
-    'lines : lines line_atom'
-    pass
-
-
-def p_lines_line_atom(p):
-    'lines :'
+    '''lines : lines line_atom
+             | empty'''
     pass
 
 
@@ -48,38 +46,31 @@ def p_plugin_expr_none(p):
     pass
 
 
-def p_relation_left(p):
-    'relation : left_rel'
+def p_relation(p):
+    '''relation : left_rel
+                | right_rel'''
     pass
 
 
-def p_relation_right(p):
-    'relation : right_rel'
+def p_left_rel(p):
+    '''left_rel : LEFT_OP
+                | LEFT_OP DEGREE'''
     pass
 
 
-def p_left_rel_nodegree(p):
-    'left_rel : LEFT_OP'
-    pass
-
-
-def p_left_rel_degree(p):
-    'left_rel : LEFT_OP DEGREE'
-    pass
-
-
-def p_right_rel_nodegree(p):
-    'right_rel : RIGHT_OP'
-    pass
-
-
-def p_right_rel_degree(p):
-    'right_rel : DEGREE RIGHT_OP'
+def p_right_rel(p):
+    '''right_rel : RIGHT_OP
+                 | DEGREE RIGHT_OP'''
     pass
 
 
 def p_plugin_name(p):
     'plugin_name : IDENTIFIER'
+    pass
+
+
+def p_empty(p):
+    'empty :'
     pass
 
 

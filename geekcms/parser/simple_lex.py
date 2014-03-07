@@ -1,6 +1,7 @@
 import os
 import re
-import ply.lex as lex
+from ply import lex
+
 
 tokens = (
     'IDENTIFIER',
@@ -9,6 +10,7 @@ tokens = (
     'DEGREE',
     'NEWLINE',
 )
+
 
 plugin_name = r'[^\d\W]\w*'
 full_name = r'({0}\.)?{0}'.format(plugin_name)

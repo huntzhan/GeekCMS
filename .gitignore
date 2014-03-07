@@ -9,4 +9,6 @@ eggs
 parts
 .DS_Store
 
+lextab.py
+parsetab.py
 parser.out
