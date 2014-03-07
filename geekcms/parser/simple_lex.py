@@ -2,19 +2,19 @@ import re
 import ply.lex as lex
 
 tokens = (
-    'PLUGIN_ID',
-    'LEFT_REL',
-    'RIGHT_REL',
+    'IDENTIFIER',
+    'LEFT_OP',
+    'RIGHT_OP',
     'DEGREE',
     'NEWLINE',
 )
 
 plugin_name = r'[^\d\W]\w*'
 full_name = r'({0}\.)?{0}'.format(plugin_name)
-t_PLUGIN_ID = full_name
+t_IDENTIFIER = full_name
 
-t_LEFT_REL = r'<<'
-t_RIGHT_REL = r'>>'
+t_LEFT_OP = r'<<'
+t_RIGHT_OP = r'>>'
 t_DEGREE = r'[^0\D]\d*|0+'
 
 
@@ -25,9 +25,11 @@ def t_NEWLINE(t):
 
 
 t_ignore = ' \t'
+t_ignore_COMMENT = r'\#.*'
 
 
 def t_error(t):
-    raise Exception('Illegal: {}'.format(t.value[0]))
+    print('Illegal Character: {}'.format(t.value[0]))
+    t.lexer.skip(1)
 
 lexer = lex.lex(reflags=re.ASCII)
