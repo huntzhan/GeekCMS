@@ -194,6 +194,7 @@ class PluginTest(unittest.TestCase):
             def __init__(self):
                 pass
 
+            @protocal.accept_parameters(protocal.RESOURCES, protocal.MESSAGES)
             def run(self, resources, messages):
                 return resources, messages
 
@@ -221,6 +222,7 @@ class PluginTest(unittest.TestCase):
         plugin = TestPlugin()
         resources, messages = plugin.run(
             TestResource.objects.values(),
+            None,
             TestMessage.objects.values(),
         )
         self.assertSetEqual(set(resources), supposed_resources)

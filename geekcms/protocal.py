@@ -3,6 +3,13 @@ from collections import UserDict
 from functools import partial
 from functools import wraps
 from inspect import signature
+from inspect import Parameter
+
+
+RESOURCES = 'resources'
+PRODUCTS = 'products'
+MESSAGES = 'messages'
+OWNER = 'owner'
 
 
 _THEME = 'theme'
@@ -134,6 +141,22 @@ class BaseMessage(_BaseAsset):
     pass
 
 
+# Control incoming parameter.
+def accept_parameters(*params):
+    if not set(params) <= set([RESOURCES, PRODUCTS, MESSAGES]):
+        raise SyntaxError('Arguments should be any among'
+                          ' [RESOURCES, PRODUCTS, MESSAGES]')
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+        wrapper.__accept_params__ = params
+        wrapper.__signature__ = signature(func)
+        return wrapper
+    return decorator
+
+
 class SetUpPlugin(type):
 
     plugin_mapping = _UniqueKeyDict()
@@ -156,6 +179,7 @@ class SetUpPlugin(type):
 
     @classmethod
     def _data_filter(cls, func=None, owner=''):
+        # support decorator
         if func is None:
             return partial(cls._data_filter, owner=owner)
 
@@ -164,17 +188,52 @@ class SetUpPlugin(type):
             check_func = lambda item: item.owner == owner
             return check_func
 
+        def count_positional_parameter_without_default(func, expect_num=None):
+            sig = getattr(func, '__signature__', None) or signature(func)
+            count = 0
+            for name, para in sig.parameters.items():
+                if para.kind is Parameter.POSITIONAL_OR_KEYWORD\
+                        and para.default is Parameter.empty:
+                    count += 1
+            if count > 3:
+                raise SyntaxError('Require only 0~3 positional parameters.')
+            # self is counted
+            if expect_num and count != (expect_num + 1):
+                raise SyntaxError(
+                    'Require {} positional parameters'.format(expect_num),
+                )
+            return count
+
         @wraps(func)
-        def run(self, assets, messages, *args, **kwargs):
+        def run(self, resources, products, messages):
+
             check_func = check_owner(owner)
-            processed_assets = filter(check_func, assets)
-            processed_messages = filter(check_func, messages)
+            params = {
+                RESOURCES: resources,
+                PRODUCTS: products,
+                MESSAGES: messages,
+            }
+
+            if hasattr(func, '__accept_params__'):
+                params_order = func.__accept_params__
+                count_positional_parameter_without_default(
+                    func,
+                    len(params_order),
+                )
+            else:
+                count = count_positional_parameter_without_default(
+                    func,
+                )
+                # default order
+                params_order = [RESOURCES, PRODUCTS, MESSAGES][:count]
+
+            iter_params = [filter(check_func, params[name])
+                           for name in params_order]
+            processed_params = [list(iter_param) for iter_param in iter_params]
 
             return func(
                 self,
-                list(processed_assets),
-                list(processed_messages),
-                *args, **kwargs
+                *processed_params
             )
         return run
 
@@ -197,7 +256,7 @@ class SetUpPlugin(type):
         setattr(
             plugin_cls,
             _PLUGIN_RUN_METHOD_NAME,
-            cls._data_filter(owner=theme_name)(process_func),
+            cls._data_filter(process_func, theme_name),
         )
 
     def __new__(cls, cls_name, bases, namespace, **kargs):
@@ -223,12 +282,12 @@ class BasePlugin(metaclass=SetUpPlugin):
         )
         return fixed_manager
 
-    def run(self, assets, messages, *args, **kwargs):
-        text = 'In Base Class: assets: {}, messages: {},'
-        '*args: {}; **kwargs: {}'
-        raise Exception(
-            text.format(assets, messages, args, kwargs),
-        )
+    # all plugins should define a 'run' function with 'self' as its first
+    # parameter, and with other zero/one/two/three positional parameter(s),
+    # one for resources, one for products, and the last one is for messages.
+    # Otherwise, use 'accept_parameters' to control parameters.
+    def run(self, resources=None, products=None):
+        raise Exception()
 
 
 def get_registered_plugins():
