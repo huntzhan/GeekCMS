@@ -109,6 +109,9 @@ from .parser.utils import PluginExpr
 from .protocal import PluginIndex
 
 
+_SPECIAL_DEGREE = -1
+
+
 class SequenceParser:
 
     def __init__(self):
@@ -186,28 +189,94 @@ class SequenceParser:
 
 class _Algorithm:
 
-    def __init__(self, plugin_exprs):
-        self._plugin_exprs = plugin_exprs
+    def __init__(self, exprs):
+        self._exprs = exprs
 
     # implement 2.1
-    def _transform_to_left_rel(self, plugin_exprs):
-        pass
+    def _transform_to_left_rel(self):
+        for expr in self._exprs:
+            relation = expr.relation
+            if relation.is_left_rel:
+                continue
+            relation.is_left_rel = True
+            # exchange operand
+            expr.left_operand, expr.right_operand =\
+                expr.right_operand, expr.left_operand
 
     # implement 2.3
-    def _remove_irrelevant_exprs(self, plugin_exprs):
-        pass
+    def _remove_irrelevant_exprs(self):
+
+        def is_irrelevant(expr):
+            if expr.relation is None\
+                    and expr.right_operand is None:
+                return True
+            return False
+
+        irrelevant_exprs = []
+        for expr in self._exprs[:]:
+            if is_irrelevant(expr):
+                self._exprs.remove(expr)
+                irrelevant_exprs.append(expr)
+        return irrelevant_exprs
 
     # implement 3.1 and 3.3
-    def _generate_relation_groups(self, plugin_exprs):
-        pass
+    def _generate_relation_group(self):
+        cmp_key = lambda x: (hash(x.left_operand), x.relation.degree)
+        sorted_exprs = sorted(self._exprs, key=cmp_key)
+
+        while sorted_exprs:
+            group = []
+            val = sorted_exprs[0].left_operand
+            while val == sorted_exprs[0].left_operand:
+                expr = sorted_exprs.pop(0)
+                group.append(expr)
+            yield group
 
     # implement 3.2
-    def _break_raw_relation_groups(self, relation_groups):
-        pass
+    def _break_raw_relation_group(self, relation_group):
+        new_group = []
+        left_operand = relation_group[0].left_operand
+        for expr in relation_groups:
+            new_expr = PluginExpr(
+                left_operand=left_operand,
+                right_operand=expr.right_operand,
+                relation=_SPECIAL_DEGREE,
+            )
+            new_group.append(new_expr)
+        return new_group
 
     # implement 4 and 5
     def _generate_execution_order(self, relation_groups, irrelevant_exprs):
-        pass
+        order = []
+        left_behind = {expr.left_operand for expr in irrelevant_exprs}
+
+        for group in relation_groups:
+            x = group[0].left_operand
+            others = [expr.right_operand for expr in group]
+
+            if x in left_behind:
+                left_behind.remove(x)
+            order.append(x)
+
+            for y in others:
+                if y in order:
+                    text = "Plugin Order Confilct: '{}'"
+                    raise SyntaxError(text.format(y.unique_key))
+                if y not in left_behind:
+                    left_behind.add(y)
+
+        if left_behind:
+            for index in left_behind:
+                order.append(index)
+
+        # remove HEAD and TAIL
+        HEAD_AND_TAIL = [PluginExpr.HEAD, PluginExpr.TAIL]
+        for index in order[:]:
+            if index.theme_name is None\
+                    and index.plugin_name in HEAD_AND_TAIL:
+                order.remove(index)
+
+        return order
 
     # Mix up all above functions.
     def generate_sequence(self):
