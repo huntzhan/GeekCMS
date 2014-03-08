@@ -183,48 +183,51 @@ class SetUpPlugin(type):
         cls.plugin_mapping[plugin_index.unique_key] = plugin_cls
 
     @classmethod
+    def _get_and_check_owner(cls, func, cls_defined_owner):
+        decorator_defined_owners = getattr(func, '__accept_owners__', None)
+        if not cls_defined_owner\
+                and not decorator_defined_owners:
+            raise Exception("Can Not Find Owner.")
+        # final_owners should be a container
+        final_owners = decorator_defined_owners or list(cls_defined_owner)
+        return final_owners
+
+    @classmethod
+    def _check_owner(cls, owners):
+        check_func = lambda item: item.owner in owners
+        return check_func
+
+    @classmethod
+    def _count_params(cls, func, expect_num=None):
+        # get __signature__ of func, or generate a new signature of func.
+        sig = signature(func)
+
+        count = 0
+        for name, para in sig.parameters.items():
+            if para.kind is Parameter.POSITIONAL_OR_KEYWORD\
+                    and para.default is Parameter.empty:
+                count += 1
+        if count > 3:
+            raise SyntaxError('Require only 0~3 positional parameters.')
+        # self is counted
+        if expect_num and count != (expect_num + 1):
+            raise SyntaxError(
+                'Require {} positional parameters'.format(expect_num),
+            )
+        return count
+
+    @classmethod
     def _data_filter(cls, func=None, owner=''):
         # support decorator
         if func is None:
             return partial(cls._data_filter, owner=owner)
 
         # begin decorating
-        def get_and_check_owner(func, cls_defined_owner):
-            decorator_defined_owners = getattr(func, '__accept_owners__', None)
-            if not cls_defined_owner\
-                    and not decorator_defined_owners:
-                raise Exception("Can Not Find Owner.")
-            # final_owners should be a container
-            final_owners = decorator_defined_owners or list(cls_defined_owner)
-            return final_owners
-
-        def check_owner(owners):
-            check_func = lambda item: item.owner in owners
-            return check_func
-
-        def count_params(func, expect_num=None):
-            # get __signature__ of func, or generate a new signature of func.
-            sig = signature(func)
-
-            count = 0
-            for name, para in sig.parameters.items():
-                if para.kind is Parameter.POSITIONAL_OR_KEYWORD\
-                        and para.default is Parameter.empty:
-                    count += 1
-            if count > 3:
-                raise SyntaxError('Require only 0~3 positional parameters.')
-            # self is counted
-            if expect_num and count != (expect_num + 1):
-                raise SyntaxError(
-                    'Require {} positional parameters'.format(expect_num),
-                )
-            return count
-
         @wraps(func)
         def run(self, resources, products, messages):
 
-            owners = get_and_check_owner(func, owner)
-            check_func = check_owner(owners)
+            owners = cls._get_and_check_owner(func, owner)
+            check_func = cls._check_owner(owners)
 
             params = {
                 RESOURCES: resources,
@@ -234,11 +237,9 @@ class SetUpPlugin(type):
 
             params_order = getattr(func, '__accept_params__', None)
             if params_order:
-                # check POSITIONAL_OR_KEYWORD
-                count_params(func, len(params_order))
+                cls._count_params(func, len(params_order))
             else:
-                count = count_params(func)
-                # default order
+                count = cls._count_params(func)
                 params_order = [RESOURCES, PRODUCTS, MESSAGES][:count]
 
             iter_params = [filter(check_func, params[name])
