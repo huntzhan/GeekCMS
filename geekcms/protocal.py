@@ -147,13 +147,11 @@ def accept_parameters(*params):
         raise SyntaxError('Arguments should be any among'
                           ' [RESOURCES, PRODUCTS, MESSAGES]')
 
+    # just add __accept_params__ and __signature__.
     def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            return func(*args, **kwargs)
-        wrapper.__accept_params__ = params
-        wrapper.__signature__ = signature(func)
-        return wrapper
+        func.__accept_params__ = params
+        func.__signature__ = signature(func)
+        return func
     return decorator
 
 

@@ -1,6 +1,7 @@
 *.pyc
 *.egg-info
 *.swp
+activate
 __pycache__
 build
 develop-eggs
