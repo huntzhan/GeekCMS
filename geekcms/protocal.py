@@ -141,6 +141,13 @@ class BaseMessage(_BaseAsset):
     pass
 
 
+# Control owner
+def accept_owner(*owners):
+    def decorator(func):
+        func.__accept_owners__ = owners
+    return func
+
+
 # Control incoming parameter.
 def accept_parameters(*params):
     if not set(params) <= set([RESOURCES, PRODUCTS, MESSAGES]):
@@ -182,12 +189,23 @@ class SetUpPlugin(type):
             return partial(cls._data_filter, owner=owner)
 
         # begin decorating
-        def check_owner(owner):
-            check_func = lambda item: item.owner == owner
+        def get_and_check_owner(func, cls_defined_owner):
+            decorator_defined_owners = getattr(func, '__accept_owners__', None)
+            if not cls_defined_owner\
+                    and not decorator_defined_owners:
+                raise Exception("Can Not Find Owner.")
+            # final_owners should be a container
+            final_owners = decorator_defined_owners or list(cls_defined_owner)
+            return final_owners
+
+        def check_owner(owners):
+            check_func = lambda item: item.owner in owners
             return check_func
 
-        def count_positional_parameter_without_default(func, expect_num=None):
-            sig = getattr(func, '__signature__', None) or signature(func)
+        def count_params(func, expect_num=None):
+            # get __signature__ of func, or generate a new signature of func.
+            sig = signature(func)
+
             count = 0
             for name, para in sig.parameters.items():
                 if para.kind is Parameter.POSITIONAL_OR_KEYWORD\
@@ -205,34 +223,29 @@ class SetUpPlugin(type):
         @wraps(func)
         def run(self, resources, products, messages):
 
-            check_func = check_owner(owner)
+            owners = get_and_check_owner(func, owner)
+            check_func = check_owner(owners)
+
             params = {
                 RESOURCES: resources,
                 PRODUCTS: products,
                 MESSAGES: messages,
             }
 
-            if hasattr(func, '__accept_params__'):
-                params_order = func.__accept_params__
-                count_positional_parameter_without_default(
-                    func,
-                    len(params_order),
-                )
+            params_order = getattr(func, '__accept_params__', None)
+            if params_order:
+                # check POSITIONAL_OR_KEYWORD
+                count_params(func, len(params_order))
             else:
-                count = count_positional_parameter_without_default(
-                    func,
-                )
+                count = count_params(func)
                 # default order
                 params_order = [RESOURCES, PRODUCTS, MESSAGES][:count]
 
             iter_params = [filter(check_func, params[name])
                            for name in params_order]
-            processed_params = [list(iter_param) for iter_param in iter_params]
 
-            return func(
-                self,
-                *processed_params
-            )
+            processed_params = [list(iter_param) for iter_param in iter_params]
+            return func(self, *processed_params)
         return run
 
     @classmethod
@@ -240,12 +253,8 @@ class SetUpPlugin(type):
         # find theme_name and plugin_name
         find_name = cls._find_case_insensitive_name
         theme_name = find_name(_THEME, namespace)
-        plugin_name = find_name(_PLUGIN, namespace)
-        # check avaliable
-        if theme_name is None:
-            raise Exception("Must Add 'theme' As Class Attribute")
-        if plugin_name is None:
-            plugin_name = plugin_cls.__name__
+        plugin_name = find_name(_PLUGIN, namespace) or plugin_cls.__name__
+
         # register plugin
         cls._register_plugin(theme_name, plugin_name, plugin_cls)
 
@@ -284,8 +293,8 @@ class BasePlugin(metaclass=SetUpPlugin):
     # parameter, and with other zero/one/two/three positional parameter(s),
     # one for resources, one for products, and the last one is for messages.
     # Otherwise, use 'accept_parameters' to control parameters.
-    def run(self, resources=None, products=None):
-        raise Exception()
+    def run(self, resources=None, products=None, messages=None):
+        raise Exception('In BasePlugin.')
 
 
 def get_registered_plugins():
