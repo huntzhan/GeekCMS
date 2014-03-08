@@ -1,72 +1,53 @@
 import unittest
+import os
 import re
+import configparser
 from collections import defaultdict
-from geekcms import sequence_analyze
 
-
-class PreParserTest(unittest.TestCase):
-
-    def _compile(self, pattern):
-        fixed_pattern = r'^{}$'.format(pattern)
-        return re.compile(fixed_pattern, re.ASCII)
-
-    # Should be remove after PLY based implementation were carried out.
-    # def _get_match_set(self, cases, extract_key, parser):
-    #     result = set()
-    #     for item in cases:
-    #         m = parser.match(item)
-    #         if m:
-    #             result.add(m.group(extract_key))
-    #     return result
-
-    # def test_regex_definition_basic(self):
-    #     lib = sequence_analyze
-
-    #     # identifier
-    #     full = ['_', '8a', 'abc)d', 'abc_d', 'abc']
-    #     good = {'_', 'abc_d', 'abc'}
-    #     p = self._compile(lib._PLUGIN_NAME)
-    #     result = self._get_match_set(full, 'plugin_name', p)
-    #     self.assertSetEqual(result, good)
-
-    #     # right op
-    #     p = self._compile(lib._RIGHT_OP)
-    #     m = p.match('>>')
-    #     self.assertEqual(m.group('right_op'), '>>')
-
-    #     # left op
-    #     p = self._compile(lib._LEFT_OP)
-    #     m = p.match('<<')
-    #     self.assertEqual(m.group('left_op'), '<<')
-
-    #     # decimalinteger
-    #     full = ['123', '0800', '000000', 'abc']
-    #     good = {'123', '000000'}
-    #     p = self._compile(lib._DECIMAL)
-    #     result = self._get_match_set(full, 'decimalinteger', p)
-    #     self.assertSetEqual(result, good)
-
-    #     # left relation
-    #     full = ['<<', '<<1', '<<0', '<']
-    #     good = {'<<', '<<1', '<<0'}
-    #     p = self._compile(lib._LEFT_REL)
-    #     result = self._get_match_set(full, 'left_relation', p)
-    #     self.assertSetEqual(result, good)
-
-    #     # right relation
-    #     full = ['>>', '1>>', '0>>', '>', '>>1']
-    #     good = {'>>', '1>>', '0>>'}
-    #     p = self._compile(lib._RIGHT_REL)
-    #     result = self._get_match_set(full, 'right_relation', p)
-    #     self.assertSetEqual(result, good)
+from geekcms.parser.simple_lex import lexer
+from geekcms.parser.simple_yacc import parser
+from geekcms.protocal import PluginIndex
+from geekcms.sequence_analyze import SequenceParser
 
 
 class PLYTest(unittest.TestCase):
 
     def test_parser(self):
-        from geekcms.parser.simple_lex import lexer
-        from geekcms.parser.simple_yacc import parser
-        from pprint import pprint
-        text = 'a<>d\na<<b'
-        result = parser.parse(text, lexer=lexer)
-        pprint(result)
+        pass
+
+
+_THEME = 'testtheme'
+
+
+class SequenceParserTest(unittest.TestCase):
+
+    def _get_suppose_result(self, text):
+        result = re.sub(r'\s', '', text).split(',')
+
+        def fix(item):
+            if '.' not in item:
+                return PluginIndex(_THEME, item)
+            else:
+                theme, plugin = item.split('.')
+                return PluginIndex(theme, plugin)
+
+        return list(map(fix, result))
+
+    def _load_test_case(self, name):
+        dir_path = os.path.join(os.path.dirname(__file__), 'cases/parser')
+        file_path = os.path.join(dir_path, name)
+
+        config = configparser.ConfigParser()
+        with open(file_path) as f:
+            config.read_file(f)
+        section = config['Test']
+        return section['case'], self._get_suppose_result(section['result'])
+
+    def test_parser_with_good_case(self):
+        cases = ['case1']
+        for case in cases:
+            text, suppose_result = self._load_test_case(case)
+            parser = SequenceParser()
+            parser.analyze(_THEME, text)
+            result = parser.generate_sequence()
+            self.assertListEqual(result, suppose_result)
