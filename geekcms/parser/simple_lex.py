@@ -1,6 +1,7 @@
 import os
 import re
 from ply import lex
+from .utils import ErrorCollector
 
 
 tokens = (
@@ -32,7 +33,10 @@ t_ignore_COMMENT = r'\#.*'
 
 
 def t_error(t):
-    print("Illegal Character: '{}' in line {}".format(t.value[0], t.lineno))
+    # print("Illegal Character: '{}' in line {}".format(t.value[0], t.lineno))
+    ErrorCollector.add_lex_message(
+        (t.value[0], t.lineno),
+    )
     t.lexer.skip(1)
 
 lexer = lex.lex(

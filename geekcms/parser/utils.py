@@ -32,27 +32,68 @@ class PluginExpr:
         return text
 
 
-class _Container:
+class _ContainerError:
+
+    def __init__(self, name):
+        self._name = name
 
     def __get__(self, instance, cls):
-        return bool(cls._message_container)
+        container_name = cls._get_message_container(self._name)
+        container = getattr(cls, container_name)
+        return bool(container)
 
 
 class ErrorCollector:
 
-    error = _Container()
-    theme_error_mesages = {}
-    _message_container = []
+    lex_error = _ContainerError('lex')
+    yacc_error = _ContainerError('yacc')
+
+    theme_lex_error = {}
+    theme_yacc_error = {}
+    _lex_message_container = []
+    _yacc_message_container = []
 
     @classmethod
-    def clean_up(cls):
-        cls._message_container = []
+    def _get_message_container(cls, name):
+        attr = '_{}_message_container'.format(name)
+        return attr
 
     @classmethod
-    def add_message(cls, message):
-        cls._message_container.append(message)
+    def _get_theme_error_mapping(cls, name):
+        attr = 'theme_{}_error'.format(name)
+        return attr
 
     @classmethod
-    def archive_messages_with_theme(cls, theme):
-        cls.theme_error_mesages[theme] = cls._message_container
-        cls.clean_up()
+    def _clean_up(cls, name):
+        attr = cls._get_message_container(name)
+        setattr(cls, attr, list())
+
+    @classmethod
+    def _add_message(cls, name, message):
+        attr = cls._get_message_container(name)
+        getattr(cls, attr).append(message)
+
+    @classmethod
+    def add_lex_message(cls, message):
+        cls._add_message('lex', message)
+
+    @classmethod
+    def add_yacc_message(cls, message):
+        cls._add_message('yacc', message)
+
+    @classmethod
+    def _archive(cls, name, theme):
+        mapping_name = cls._get_theme_error_mapping(name)
+        container_name = cls._get_message_container(name)
+        mapping = getattr(cls, mapping_name)
+        container = getattr(cls, container_name)
+        mapping[theme] = container
+        cls._clean_up(name)
+
+    @classmethod
+    def archive_yacc_messages(cls, theme):
+        cls._archive('yacc', theme)
+
+    @classmethod
+    def archive_lex_messages(cls, theme):
+        cls._archive('lex', theme)

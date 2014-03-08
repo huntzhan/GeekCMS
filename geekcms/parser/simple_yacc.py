@@ -127,7 +127,7 @@ def p_error(p):
             discard.append(val)
             break
     # print('Discard: ', ''.join(discard))
-    ErrorCollector.add_message(
+    ErrorCollector.add_yacc_message(
         (p.value, p.lineno, ''.join(discard)),
     )
     yacc.restart()
