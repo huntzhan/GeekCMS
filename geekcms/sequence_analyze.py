@@ -105,6 +105,8 @@ import inspect
 from .parser.simple_lex import lexer
 from .parser.simple_yacc import parser
 from .parser.utils import ErrorCollector
+from .parser.utils import PluginExpr
+from .protocal import PluginIndex
 
 
 class SequenceParser:
@@ -117,7 +119,37 @@ class SequenceParser:
 
     # implement 2.2
     def _replace_with_plugin_index(self, theme, plugin_exprs):
-        pass
+
+        def get_theme_plugin(operand):
+            if operand == PluginExpr.HEAD or operand == PluginExpr.TAIL:
+                return None, operand
+            # theme.plugin or plugin
+            items = operand.split('.')
+            if len(items) == 1:
+                return theme, operand
+            elif len(items) == 2:
+                return items
+            else:
+                raise SyntaxError('Operand Error.')
+
+        processed_exprs = []
+        for expr in plugin_exprs:
+
+            left_theme, left_plugin = get_theme_plugin(expr.left_operand)
+            right_theme, right_plugin = get_theme_plugin(expr.right_operand)
+
+            left_index = PluginIndex(left_theme, left_plugin)
+            right_index = PluginIndex(right_theme, right_plugin)
+
+            new_expr = PluginExpr(
+                left_operand = left_index,
+                right_operand = right_index,
+                relation=expr.relation,
+            )
+            processed_exprs.append(new_expr)
+
+        return processed_exprs
+
 
     def analyze(self, theme, text):
         exprs = self._parse(text)
