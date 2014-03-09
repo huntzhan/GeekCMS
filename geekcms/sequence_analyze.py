@@ -185,10 +185,10 @@ class _Algorithm:
         order = []
         left_behind = {expr.left_operand for expr in irrelevant_exprs}
 
-        left_hand_side = defaultdict(int)
+        left_hand_side = defaultdict(list)
         right_hand_side = defaultdict(int)
         for expr in relations:
-            left_hand_side[expr.left_operand] += 1
+            left_hand_side[expr.left_operand].append(expr.right_operand)
             right_hand_side[expr.right_operand] += 1
 
         items_only_in_right_hand_side =\
@@ -198,19 +198,21 @@ class _Algorithm:
         while left_hand_side:
             unique_items =\
                 set(left_hand_side.keys()) - set(right_hand_side.keys())
+
+            if not unique_items:
+                text = "Something Wrong. LHS: '{}' RHS: '{}'"
+                raise SyntaxError(
+                    text.format(left_hand_side, right_hand_side),
+                )
+
             item = unique_items.pop()
             order.append(item)
 
-            del left_hand_side[item]
-
-            for expr in relations:
-                left_op = expr.left_operand
-                right_op = expr.right_operand
-                if left_op != item:
-                    continue
+            for right_op in left_hand_side[item]:
                 right_hand_side[right_op] -= 1
                 if right_hand_side[right_op] == 0:
                     del right_hand_side[right_op]
+            del left_hand_side[item]
 
         order.extend(left_behind)
 
