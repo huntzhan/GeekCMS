@@ -183,7 +183,7 @@ class SetUpPlugin(type):
         cls.plugin_mapping[plugin_index.unique_key] = plugin_cls
 
     @classmethod
-    def _get_and_check_owner(cls, func, cls_defined_owner):
+    def _get_owner(cls, func, cls_defined_owner):
         decorator_defined_owners = getattr(func, '__accept_owners__', None)
         if not cls_defined_owner\
                 and not decorator_defined_owners:
@@ -226,7 +226,7 @@ class SetUpPlugin(type):
         @wraps(func)
         def run(self, resources, products, messages):
 
-            owners = cls._get_and_check_owner(func, owner)
+            owners = cls._get_owner(func, owner)
             check_func = cls._check_owner(owners)
 
             params = {
