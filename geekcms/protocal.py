@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import UserDict
 from collections import abc
 from functools import partial
 from functools import wraps
@@ -39,7 +39,7 @@ class PluginIndex:
         )
 
 
-class Manager(defaultdict):
+class Manager(UserDict):
 
     def __get__(self, instance, cls):
         if instance:
@@ -52,9 +52,18 @@ class Manager(defaultdict):
     def __delete__(self, instance):
         raise Exception('Manager Can Not Be Deleted.')
 
-    def __init__(self, target_cls):
-        super().__init__(list)
+    def __init__(self, target_cls, data=None):
+        super().__init__()
+        # share data area
+        if data:
+            self.data = data
+        # class to init items
         self._target_cls = target_cls
+
+    def __getitem__(self, key):
+        if key not in self:
+            self[key] = []
+        return super().__getitem__(key)
 
     def create(self, owner, *args, **kwargs):
         item = self._target_cls(owner, *args, **kwargs)
@@ -108,10 +117,20 @@ class ManagerProxyWithOwner:
 
 class SetUpObjectManager(type):
 
-    def __new__(cls, *args, **kwargs):
-        result_cls = super().__new__(cls, *args, **kwargs)
-        # set up manager.
-        result_cls.objects = Manager(result_cls)
+    MANAGER_NAME = 'objects'
+
+    @classmethod
+    def _get_manager_data(cls, result_cls):
+        pre_manager = getattr(result_cls, cls.MANAGER_NAME, None)
+        if pre_manager:
+            return pre_manager.data
+        else:
+            return None
+
+    def __new__(cls, cls_name, *args, **kwargs):
+        result_cls = super().__new__(cls, cls_name, *args, **kwargs)
+        data = cls._get_manager_data(result_cls)
+        setattr(result_cls, cls.MANAGER_NAME, Manager(result_cls, data))
         return result_cls
 
 
