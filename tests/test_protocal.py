@@ -24,16 +24,16 @@ class ManagerTest(unittest.TestCase):
 
     def test_add_remove(self):
         item = self.TestClass(self.owner)
-        self.assertEqual(self.manager._container, defaultdict(list))
+        self.assertEqual(self.manager, defaultdict(list))
 
         self.manager.add(item)
         self.assertDictEqual(
-            self.manager._container,
+            dict(self.manager),
             {self.owner: [item]},
         )
 
         self.manager.remove(item)
-        self.assertEqual(self.manager._container, defaultdict(list))
+        self.assertEqual(self.manager, defaultdict(list))
 
     def test_filter_keys_values(self):
         owner_1 = 'owner_1'
@@ -57,12 +57,12 @@ class ManagerTest(unittest.TestCase):
 
         item = proxy.create()
         self.assertDictEqual(
-            self.manager._container,
+            dict(self.manager),
             {self.owner: [item]},
         )
 
         proxy.remove(item)
-        self.assertEqual(self.manager._container, defaultdict(list))
+        self.assertEqual(self.manager, defaultdict(list))
 
         item = proxy.create()
         self.assertListEqual(proxy.filter(), [item])
@@ -188,13 +188,15 @@ class PluginTest(unittest.TestCase):
         theme_name = 'a'
         noise_name = 'b'
 
+        pcl = protocal.PluginController
+
         class TestPlugin(protocal.BasePlugin):
             theme = theme_name
 
             def __init__(self):
                 pass
 
-            @protocal.accept_parameters(protocal.RESOURCES, protocal.MESSAGES)
+            @pcl.accept_parameters(pcl.RESOURCES, pcl.MESSAGES)
             def run(self, resources, messages):
                 return resources, messages
 

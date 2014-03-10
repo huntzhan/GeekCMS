@@ -1,15 +1,9 @@
 from collections import defaultdict
-from collections import UserDict
+from collections import abc
 from functools import partial
 from functools import wraps
 from inspect import signature
 from inspect import Parameter
-
-
-RESOURCES = 'resources'
-PRODUCTS = 'products'
-MESSAGES = 'messages'
-OWNER = 'owner'
 
 
 _THEME = 'theme'
@@ -17,7 +11,7 @@ _PLUGIN = 'plugin'
 _PLUGIN_RUN_METHOD_NAME = 'run'
 
 
-class _UniqueKeyDict(UserDict):
+class _UniqueKeyDict(dict):
 
     def __setitem__(self, key, val):
         if key in self:
@@ -45,11 +39,7 @@ class PluginIndex:
         )
 
 
-class Manager:
-
-    def __init__(self, target_cls):
-        self._target_cls = target_cls
-        self._container = defaultdict(list)
+class Manager(defaultdict):
 
     def __get__(self, instance, cls):
         if instance:
@@ -62,29 +52,40 @@ class Manager:
     def __delete__(self, instance):
         raise Exception('Manager Can Not Be Deleted.')
 
+    def __init__(self, target_cls):
+        super().__init__(list)
+        self._target_cls = target_cls
+
     def create(self, owner, *args, **kwargs):
-        new_item = self._target_cls(owner, *args, **kwargs)
-        self.add(new_item)
-        return new_item
+        item = self._target_cls(owner, *args, **kwargs)
+        self[owner].append(item)
+        return item
 
-    def add(self, target):
-        self._container[target.owner].append(target)
+    def add(self, item):
+        self[item.owner].append(item)
 
-    def remove(self, target):
-        self._container[target.owner].remove(target)
-        if not self._container[target.owner]:
-            del self._container[target.owner]
+    def remove(self, item):
+        self[item.owner].remove(item)
+        if not self[item.owner]:
+            del self[item.owner]
 
     def filter(self, owner):
-        return self._container[owner]
+        if isinstance(owner, str):
+            return self[owner]
+        elif isinstance(owner, abc.Iterable):
+            result = []
+            owners = owner
+            for owner in owners:
+                result.extend(self[owner])
+            return reuslt
 
     def keys(self):
-        return list(self._container)
+        return list(self)
 
     def values(self):
         result = []
-        for objs in self._container.values():
-            result.extend(objs)
+        for items in super().values():
+            result.extend(items)
         return result
 
 
@@ -92,7 +93,8 @@ class ManagerProxyWithOwner:
 
     def __init__(self, owner, manager):
 
-        for method_name in dir(manager):
+        # search type(manager).__dict__
+        for method_name in vars(type(manager)):
             if method_name.startswith('_'):
                 continue
             method = getattr(manager, method_name)
@@ -141,25 +143,77 @@ class BaseMessage(_BaseAsset):
     pass
 
 
-# Control owner
-def accept_owner(*owners):
-    def decorator(func):
-        func.__accept_owners__ = owners
-    return func
+class PluginController:
+    """
+    Data fields and operations related to plugin 'run' method's customization.
+    """
 
+    ACCEPT_OWNERS_ATTR = '__accept_owners__'
+    ACCEPT_PARAMS_ATTR = '__accept_params__'
+    OWNER = 'owner'
+    RESOURCES = 'resources'
+    PRODUCTS = 'products'
+    MESSAGES = 'messages'
+    _AVALIABLE_NAMES = [RESOURCES, PRODUCTS, MESSAGES]
 
-# Control incoming parameter.
-def accept_parameters(*params):
-    if not set(params) <= set([RESOURCES, PRODUCTS, MESSAGES]):
-        raise SyntaxError('Arguments should be any among'
-                          ' [RESOURCES, PRODUCTS, MESSAGES]')
-
-    # just add __accept_params__ and __signature__.
-    def decorator(func):
-        func.__accept_params__ = params
-        func.__signature__ = signature(func)
+    # Control owner
+    @classmethod
+    def accept_owner(cls, *owners):
+        def decorator(func):
+            setattr(func, cls.ACCEPT_OWNERS_ATTR, owners)
         return func
-    return decorator
+
+    # Control incoming parameter.
+    @classmethod
+    def accept_parameters(cls, *params):
+        if not set(params) <= set(cls._AVALIABLE_NAMES):
+            raise SyntaxError('Arguments should be any among'
+                              ' [RESOURCES, PRODUCTS, MESSAGES]')
+
+        # just add __accept_params__ and __signature__.
+        def decorator(func):
+            setattr(func, cls.ACCEPT_PARAMS_ATTR, params)
+            # protocal of inspect.signature
+            func.__signature__ = signature(func)
+            return func
+        return decorator
+
+    @classmethod
+    def get_owner(cls, func, cls_defined_owner):
+        decorator_defined_owners = getattr(func, cls.ACCEPT_OWNERS_ATTR, None)
+        if not any((cls_defined_owner, decorator_defined_owners)):
+            raise Exception("Can Not Find Owner.")
+        # final_owners should be a container.
+        final_owners = decorator_defined_owners or list(cls_defined_owner)
+        return final_owners
+
+    @classmethod
+    def asset_owner_filter(cls, owners):
+        check_func = lambda item: item.owner in owners
+        return check_func
+
+    @classmethod
+    def get_parameters(cls, func):
+        return getattr(func, cls.ACCEPT_PARAMS_ATTR, None)
+
+    @classmethod
+    def count_parameters(cls, func, expect_num=None):
+        # get __signature__ of func, or generate a new signature of func.
+        sig = signature(func)
+
+        count = 0
+        for name, para in sig.parameters.items():
+            if para.kind is Parameter.POSITIONAL_OR_KEYWORD\
+                    and para.default is Parameter.empty:
+                count += 1
+        if count > 3:
+            raise SyntaxError('Require only 0~3 positional parameters.')
+        # self is counted
+        if expect_num and count != (expect_num + 1):
+            raise SyntaxError(
+                'Require {} positional parameters'.format(expect_num),
+            )
+        return count
 
 
 class SetUpPlugin(type):
@@ -183,40 +237,6 @@ class SetUpPlugin(type):
         cls.plugin_mapping[plugin_index.unique_key] = plugin_cls
 
     @classmethod
-    def _get_and_check_owner(cls, func, cls_defined_owner):
-        decorator_defined_owners = getattr(func, '__accept_owners__', None)
-        if not cls_defined_owner\
-                and not decorator_defined_owners:
-            raise Exception("Can Not Find Owner.")
-        # final_owners should be a container
-        final_owners = decorator_defined_owners or list(cls_defined_owner)
-        return final_owners
-
-    @classmethod
-    def _check_owner(cls, owners):
-        check_func = lambda item: item.owner in owners
-        return check_func
-
-    @classmethod
-    def _count_params(cls, func, expect_num=None):
-        # get __signature__ of func, or generate a new signature of func.
-        sig = signature(func)
-
-        count = 0
-        for name, para in sig.parameters.items():
-            if para.kind is Parameter.POSITIONAL_OR_KEYWORD\
-                    and para.default is Parameter.empty:
-                count += 1
-        if count > 3:
-            raise SyntaxError('Require only 0~3 positional parameters.')
-        # self is counted
-        if expect_num and count != (expect_num + 1):
-            raise SyntaxError(
-                'Require {} positional parameters'.format(expect_num),
-            )
-        return count
-
-    @classmethod
     def _data_filter(cls, func=None, owner=''):
         # support decorator
         if func is None:
@@ -225,26 +245,24 @@ class SetUpPlugin(type):
         # begin decorating
         @wraps(func)
         def run(self, resources, products, messages):
-
-            owners = cls._get_and_check_owner(func, owner)
-            check_func = cls._check_owner(owners)
-
             params = {
-                RESOURCES: resources,
-                PRODUCTS: products,
-                MESSAGES: messages,
+                PluginController.RESOURCES: resources,
+                PluginController.PRODUCTS: products,
+                PluginController.MESSAGES: messages,
             }
 
-            params_order = getattr(func, '__accept_params__', None)
+            owners = PluginController.get_owner(func, owner)
+            check_func = PluginController.asset_owner_filter(owners)
+            params_order = PluginController.get_parameters(func)
+
             if params_order:
-                cls._count_params(func, len(params_order))
+                PluginController.count_parameters(func, len(params_order))
             else:
-                count = cls._count_params(func)
+                count = PluginController.count_parameters(func)
                 params_order = [RESOURCES, PRODUCTS, MESSAGES][:count]
 
             iter_params = [filter(check_func, params[name])
                            for name in params_order]
-
             processed_params = [list(iter_param) for iter_param in iter_params]
             return func(self, *processed_params)
         return run
