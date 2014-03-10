@@ -3,7 +3,7 @@
 This package implements tools that can facilitates theme development.
 """
 
-
+import os
 import configparser
 
 
@@ -11,10 +11,6 @@ class SettingsLoader:
     """
     Load settings and provide inquiry interface.
     """
-
-    # SHARE_FIELD = 'Share'
-    # THEME_FIELD = 'Theme'
-    # PLUGIN_REGISTRATION_FIELD = 'Plugin'
 
     def __init__(self, name, path):
         self._name = name
@@ -31,15 +27,6 @@ class SettingsLoader:
             return self._config[section]
         else:
             return None
-
-    # def get_share_data(self):
-    #     return self.get_section(self.SHARE_FIELD)
-
-    # def get_registered_theme(self):
-    #     return self.get_section(self.THEME_FIELD)
-
-    # def get_registered_plugin(self):
-    #     return self.get_section(self.PLUGIN_REGISTRATION_FIELD)
 
 
 class _SearchData:
@@ -109,11 +96,73 @@ class ShareDate(_SearchData):
     DATA_FIELD = 'Share'
 
 
-class ProjectSettings:
+class ProjectSettings(_SearchData):
 
     DATA_FIELD = 'RegisterTheme'
 
 
-class ThemeSettings:
+class ThemeSettings(_SearchData):
 
     DATA_FIELD = 'RegisterPlugin'
+
+
+class PathResolver:
+
+    INPUTS = 'inputs'
+    OUTPUTS = 'outputs'
+    THEMES = 'themes'
+    STATES = 'states'
+
+    PROJECT_SETTINGS = 'settings'
+    THEME_SETTINGS = 'settings'
+
+    project_path = None
+
+    @classmethod
+    def set_project_path(cls, path):
+        cls.project_path = path
+
+    @classmethod
+    def _join_project(cls, path):
+        return os.path.join(cls.project_path, path)
+
+    @classmethod
+    def get_inputs_path(cls):
+        return cls._join_project(cls.INPUTS)
+
+    @classmethod
+    def get_outputs_path(cls):
+        return cls._join_project(cls.OUTPUTS)
+
+    @classmethod
+    def get_themes_path(cls):
+        return cls._join_project(cls.THEMES)
+
+    @classmethod
+    def get_states_path(cls):
+        return cls._join_project(cls.STATES)
+
+    @classmethod
+    def get_theme_state_path(cls, theme_name):
+        return os.path.join(
+            cls.get_states_path(),
+            theme_name,
+        )
+
+    @classmethod
+    def get_theme_code_path(cls, theme_name):
+        return os.path.join(
+            cls.get_themes_path(),
+            theme_name,
+        )
+
+    @classmethod
+    def get_project_settings_path(cls):
+        return cls._join_project(cls.PROJECT_SETTINGS)
+
+    @classmethod
+    def get_theme_settings_path(cls, theme_name):
+        return os.path.join(
+            cls.get_theme_code_path(theme_name),
+            cls.THEME_SETTINGS,
+        )
