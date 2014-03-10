@@ -72,13 +72,10 @@ The components can be classified into three **layers**, load/process/write. Noti
 
 As mentioned, runtime components are classified into three *layers*, *load*, *process* and *write*. Information of layers are as follow:
 
-* **Execution**: Layers are exectured in order, **load --> process --> write**, very simple and intuitive.
-* **Communication**: Actually, layers could be viewed as implementation of pipe-and-filter architecture.
-	* **load** layer would deliver some **resources** and **messages** to *process* layer.
-	* **process** layer would process **resource** and deal with **messages**, generating **products** and some other **messages**, and deliver them to **write** layer.
-	* **write** layer would process **products** and deal with **messages**, and execute logic related to generate output files.
-	
-	**resource**, **product**, **message** are data structures provided by GeekCMS.
+* **Execution**: Layers are exectured in order, **load --> process --> write**, which is simple and intuitive.
+* **Communication**: There are two different ways to share data between plugins.
+	* Use decorators provided by GeekCMS to filter data passed to *run* interface. 
+	* Use manager of **resource**, **product**, **message**, which are data structures provided by GeekCMS.
 	
 ### Default/Extended Procedure(s)
 
@@ -160,10 +157,11 @@ Syntax of ordering plugins within a runtime component is as follow:
 	
 *identifier*, *decimalinteger* and *NEWLINE* are corresponding to the definitions in [Python Lexical Analysis](http://docs.python.org/3/reference/lexical_analysis.html).
 
-
-
-
 #### Tools Provided By GeekCMS
+
+##### Data Share
+
+##### Paths to Important Directory
 
 #### File Organization
 
