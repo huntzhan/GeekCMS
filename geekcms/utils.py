@@ -5,18 +5,22 @@ This package implements tools that can facilitates theme development.
 
 import os
 import re
+import sys
 import configparser
+from collections import abc
 
 
 class SettingsLoader:
 
-    def __init__(self, name, path):
-        self._name = name
-        self._path = path
+    PROJECT_GLOBAL = 'global'
+
+    def __init__(self, path, name=None):
+        self.name = name or self.PROJECT_GLOBAL
+        self.path = path
 
     def _load_settings(self):
         config = configparser.ConfigParser()
-        with open(self._path) as f:
+        with open(self.path) as f:
             config.read_file(f)
         self._config = config
 
@@ -34,7 +38,10 @@ class _SearchData:
     _cache = {}
 
     @classmethod
-    def load_share_data(cls, loaders):
+    def load_data(cls, loaders):
+        # ensure iterable
+        if not isinstance(loaders, abc.Iterable):
+            loaders = [loaders]
         for loader in loaders:
             cls._vars[loader.name] = loader.get_section(cls.DATA_FIELD)
 
@@ -169,3 +176,15 @@ class PathResolver:
             cls.theme_dir(theme_name),
             cls.THEME_SETTINGS,
         )
+
+
+class SysPathContextManager:
+
+    def __init__(self, path):
+        self.path = path
+
+    def __enter__(self):
+        sys.path.insert(0, self.path)
+
+    def __exit__(self, *args):
+        sys.path.remove(self.path)

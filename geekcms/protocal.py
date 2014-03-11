@@ -253,7 +253,11 @@ class SetUpPlugin(type):
     @classmethod
     def _register_plugin(cls, theme_name, plugin_name, plugin_cls):
         plugin_index = PluginIndex(theme_name, plugin_name)
-        cls.plugin_mapping[plugin_index.unique_key] = plugin_cls
+        cls.plugin_mapping[plugin_index] = plugin_cls
+
+    @classmethod
+    def get_plugin(cls, plugin_index):
+        return cls.plugin_mapping.get(plugin_index, None)
 
     @classmethod
     def _data_filter(cls, func=None, owner=''):
@@ -315,9 +319,6 @@ class SetUpPlugin(type):
 
 
 class BasePlugin(metaclass=SetUpPlugin):
-
-    def __init__(*args, **kwargs):
-        raise Exception('In BasePlugin')
 
     @classmethod
     def get_manager_bind_with_plugin(cls, other_cls):
