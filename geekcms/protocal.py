@@ -177,7 +177,7 @@ class PluginController:
 
     # Control owner
     @classmethod
-    def accept_owner(cls, *owners):
+    def accept_owners(cls, *owners):
         def decorator(func):
             setattr(func, cls.ACCEPT_OWNERS_ATTR, owners)
         return func
@@ -199,7 +199,7 @@ class PluginController:
 
     @classmethod
     def get_owner(cls, func, cls_defined_owner):
-        # get owners definded by accept_owner.
+        # get owners definded by accept_owners.
         decorator_defined_owners = getattr(func, cls.ACCEPT_OWNERS_ATTR, None)
         # ensure developer definded owner.
         if not any((cls_defined_owner, decorator_defined_owners)):
@@ -309,7 +309,7 @@ class SetUpPlugin(type):
 
     @classmethod
     def _set_up_plugin(cls, plugin_cls, namespace):
-        # find theme_name and plugin_name
+        # find theme_name and plugin_name, should both be string.
         find_name = cls._find_case_insensitive_name
         theme_name = find_name(_THEME, namespace)
         plugin_name = find_name(_PLUGIN, namespace) or plugin_cls.__name__
