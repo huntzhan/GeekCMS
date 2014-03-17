@@ -64,21 +64,23 @@ class PluginLoader:
 
     @classmethod
     def get_execution_orders(cls):
-        error_happend = True
+        error_happend = False
         exec_orders = OrderedDict()
 
         for component in cls.runtime_components:
             parser = SequenceParser()
             for theme_name in ProjectSettings.get_registered_theme_name():
+                # get plain text
                 search_key = '{}.{}'.format(theme_name, component)
-                if search_key is None:
-                    continue
                 plain_text = ThemeSettings.get(search_key)
+                if plain_text is None:
+                    continue
+                # analyse
                 parser.analyze(plain_text)
 
             if parser.error:
                 parser.report_error()
-                error_happend = False
+                error_happend = True
             else:
                 exec_orders[component] = parser.generate_sequence()
 
@@ -89,13 +91,14 @@ class PluginLoader:
         for plugin_index in exec_orders.values():
             plugin = SetUpPlugin.get_plugin(plugin_index)
             if plugin is None:
-                return False
-        return True
+                # can not find such plugin
+                return True
+        return False
 
     @classmethod
     def run(cls):
         parse_error, exec_orders = cls.get_execution_orders()
         match_error = cls.verify_plugins(exec_orders)
-        # TODO: dev logging strategy to handle info(including errors) of the
-        # system.
+        if parse_error or match_error:
+            raise SyntaxError("Error happended, suspend program.')
         return exec_orders

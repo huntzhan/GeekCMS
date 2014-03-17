@@ -250,16 +250,17 @@ class SequenceParser:
     def _replace_with_plugin_index(self, theme, plugin_exprs):
 
         def get_theme_plugin(operand):
+            # special case
             if operand == PluginExpr.HEAD or operand == PluginExpr.TAIL:
                 return None, operand
-            # theme.plugin or plugin
+            # return theme.plugin or plugin.
             items = operand.split('.')
             if len(items) == 1:
                 return theme, operand
             elif len(items) == 2:
                 return items
             else:
-                raise SyntaxError('Operand Error.')
+                raise SyntaxError('Operand Error: {}'.format(operand))
 
         processed_exprs = []
         for expr in plugin_exprs:
@@ -279,11 +280,7 @@ class SequenceParser:
 
         return processed_exprs
 
-    def analyze(self, theme, text):
-        exprs = self._parse(text)
-        processed_exprs = self._replace_with_plugin_index(theme, exprs)
-        self.theme_plugin_expr_mapping[theme] = processed_exprs
-
+    def _archive_error(self):
         if ErrorCollector.lex_error:
             self.error = True
             ErrorCollector.archive_lex_messages(theme)
@@ -291,6 +288,13 @@ class SequenceParser:
         if ErrorCollector.yacc_error:
             self.error = True
             ErrorCollector.archive_yacc_messages(theme)
+
+    def analyze(self, theme, text):
+        exprs = self._parse(text)
+        self._archive_error()
+
+        processed_exprs = self._replace_with_plugin_index(theme, exprs)
+        self.theme_plugin_expr_mapping[theme] = processed_exprs
 
     def report_error(self):
         # print lex error

@@ -83,10 +83,13 @@ class ErrorCollector:
 
     @classmethod
     def _archive(cls, name, theme):
+        # resolve name.
         mapping_name = cls._get_theme_error_mapping(name)
         container_name = cls._get_message_container(name)
+        # get obj.
         mapping = getattr(cls, mapping_name)
         container = getattr(cls, container_name)
+        # archive and clean up.
         mapping[theme] = container
         cls._clean_up(name)
 
