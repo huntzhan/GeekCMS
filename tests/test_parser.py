@@ -44,7 +44,7 @@ class SequenceParserTest(unittest.TestCase):
         return section['case'], self._get_suppose_result(section['result'])
 
     def test_parser_with_good_case(self):
-        cases = ['case1']
+        cases = ['case1', 'case2', 'case3', 'case4']
         for case in cases:
             text, suppose_result = self._load_test_case(case)
             parser = SequenceParser()

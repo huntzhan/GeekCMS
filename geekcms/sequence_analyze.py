@@ -169,15 +169,32 @@ class _Algorithm:
     # implement 3.2
     def _break_raw_relation_group(self, relation_group):
         new_group = []
-        left_operand = relation_group[0].left_operand
         special_rel = PluginRel(True, _SPECIAL_DEGREE)
+
+        last_operand = None
         for expr in relation_group:
-            new_expr = PluginExpr(
-                left_operand=left_operand,
+
+            if last_operand is None:
+                # first expr
+                new_expr = PluginExpr(
+                    left_operand=expr.left_operand,
+                    right_operand=expr.right_operand,
+                    relation=special_rel,
+                )
+                new_group.append(new_expr)
+                # set up last_operand
+                last_operand = expr.right_operand
+                continue
+
+            combined_expr = PluginExpr(
+                left_operand=last_operand,
                 right_operand=expr.right_operand,
                 relation=special_rel,
             )
-            new_group.append(new_expr)
+            new_group.append(combined_expr)
+            # update last_operand
+            last_operand = expr.right_operand
+
         return new_group
 
     # implement 4 and 5
@@ -202,7 +219,7 @@ class _Algorithm:
             if not unique_items:
                 text = "Something Wrong. LHS: '{}' RHS: '{}'"
                 raise SyntaxError(
-                    text.format(left_hand_side, right_hand_side),
+                    text.format(dict(left_hand_side), dict(right_hand_side)),
                 )
 
             item = unique_items.pop()

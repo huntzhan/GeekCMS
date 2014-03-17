@@ -1,0 +1,8 @@
+
+[Test]
+case:
+	a<<b
+	a<<1c
+	a<<2d
+result:
+	a, b, c, d
