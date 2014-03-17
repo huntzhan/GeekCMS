@@ -199,11 +199,17 @@ class PluginController:
 
     @classmethod
     def get_owner(cls, func, cls_defined_owner):
+        # get owners definded by accept_owner.
         decorator_defined_owners = getattr(func, cls.ACCEPT_OWNERS_ATTR, None)
+        # ensure developer definded owner.
         if not any((cls_defined_owner, decorator_defined_owners)):
             raise Exception("Can Not Find Owner.")
+        # make class defined owner iterable
+        if isinstance(cls_defined_owner, str):
+            cls_defined_owner = [cls_defined_owner]
+
         # final_owners should be a container.
-        final_owners = decorator_defined_owners or list(cls_defined_owner)
+        final_owners = decorator_defined_owners or cls_defined_owner
         return final_owners
 
     @classmethod
