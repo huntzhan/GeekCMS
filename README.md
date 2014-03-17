@@ -86,8 +86,10 @@ As mentioned, runtime components are classified into three *layers*, *load*, *pr
 
 ### Responsibility of GeekCMS and Themes
 
-From the view of theme(in short, **theme = templates + plugins**) developers, GeekCMS is a *platform* with various tools and protocals which would be helpful for plugin and theme development. It's important to know that, GeekCMS is a **plugin driven tool. 
-Without a theme, GeekCMS can do nothing!**
+From the view of theme(in short, **theme = templates + plugins**) developers, GeekCMS is a platform with various tools and protocals which would could theme development. For users, GeekCMS is a **theme driven tool, means that
+without a theme, GeekCMS can do nothing!**
+
+Unlike pelican, GeekCMS do not define what **template** really is.
 
 ### Theme/Plugin Protocal
 
@@ -156,6 +158,84 @@ Syntax of ordering plugins within a runtime component is as follow:
 	plugin_name ::= identifier
 	
 *identifier*, *decimalinteger* and *NEWLINE* are corresponding to the definitions in [Python Lexical Analysis](http://docs.python.org/3/reference/lexical_analysis.html).
+
+Every Plugin should inherit **geekcms.protocal.BasePlugin**, and overwrite the **run()** function of **BasePlugin**. An example is presented for further explanation:
+
+	from geekcms import protocal
+	
+	class TestPlugin(protocal.BasePlugin):
+	
+		theme = 'test_theme'
+		plugin = 'test_plugin'
+		
+		def run(self, resources):
+			pass
+
+Explanation of class-level attributes:
+
+* **theme**: value that would be used to filter resources, products or messages passed to **run** method. For instances, suppose class A, B both definded *theme = 'AB'*, and there is another class C definded *theme = 'C'*. If A's **run** method created some resources instance **owned by 'ab'**(details would be covered later), and suppose B and C were executed after A, then B's run method might receive instances of resource created by A(or might not, due to the parameter controller) while C's run method would not receive instances created by A.
+* **plugin**: defines the name of plugin which related to the plugin names of **theme settings**. This attribute could be omitted, in that case, the class name would be used as the plugin name. 
+
+The **run** function is a bit more complicated. Since the bussiness of plugins various a lot, developers might defind **run** function with different parameters, such as:
+
+	from geekcms import protocal
+	
+	class TestPlugin(protocal.BasePlugin):
+	
+		theme = 'test_theme'
+		
+		# accept all assets.
+		def run(self, resources, products, messages):
+			pass
+		
+		# only accept resources.
+		def run(self, resources):
+			pass
+
+		# accept nothing.		
+		def run(self):
+			pass
+
+GeekCMS would detect the signature of **run** function, with the default order [resource, products, messages]. For example, if developer defined a **run** function with two positional parameters, then GeekCMS would pass instances of resources and products to such function.
+
+If developer want to break the default order, for instances, define a **run** function accept only the messages, then **protocal.PluginController.accept_parameters** could be an option:
+
+	from geekcms import protocal
+	
+	pcl = protocal.PluginController
+	
+	class TestPlugin(protocal.BasePlugin):
+	
+		theme = 'test_theme'
+		
+		# accept only messages.
+		@pcl.accept_parameters(pcl.MESSAGES)
+		def run(self, messages):
+			pass
+
+**PluginController.accept_parameters(\*params_tag)** accpets one or more parameter tag of \[**PluginController.RESOURCES**, **PluginController.PRODUCTS**, **PluginController.MESSAGES**\].
+
+Besides definding a class-level attribute **theme**, developer could use **PluginController.accept_owners(\*theme_names)** to declaring what kind of assets could be passed to run function:
+
+	from geekcms import protocal
+	
+	pcl = protocal.PluginController
+	
+	class TestPlugin(protocal.BasePlugin):
+			
+		# accept only messages.
+		@pcl.accept_parameters(pcl.MESSAGES)
+		@pcl.accept_owners('test_theme', 'another_theme')
+		def run(self, messages):
+			pass
+
+
+Themes of GeekCMS should be organized as package with **\_\_init\_\_.py** in its top-level directory. 
+
+	theme_A/
+		__init__.py
+		settings
+		...
 
 #### Tools Provided By GeekCMS
 
