@@ -173,7 +173,7 @@ class PluginController:
     RESOURCES = 'resources'
     PRODUCTS = 'products'
     MESSAGES = 'messages'
-    _AVALIABLE_NAMES = [RESOURCES, PRODUCTS, MESSAGES]
+    AVALIABLE_PARA_NAMES = [RESOURCES, PRODUCTS, MESSAGES]
 
     # Control owner
     @classmethod
@@ -185,7 +185,7 @@ class PluginController:
     # Control incoming parameter.
     @classmethod
     def accept_parameters(cls, *params):
-        if not set(params) <= set(cls._AVALIABLE_NAMES):
+        if not set(params) <= set(cls.AVALIABLE_PARA_NAMES):
             raise SyntaxError('Arguments should be any among'
                               ' [RESOURCES, PRODUCTS, MESSAGES]')
 
@@ -274,6 +274,7 @@ class SetUpPlugin(type):
         # begin decorating
         @wraps(func)
         def run(self, resources, products, messages):
+            # contains all assets index by AVALIABLE_PARA_NAMES
             params = {
                 PluginController.RESOURCES: resources,
                 PluginController.PRODUCTS: products,
@@ -282,17 +283,27 @@ class SetUpPlugin(type):
 
             owners = PluginController.get_owner(func, owner)
             check_func = PluginController.asset_owner_filter(owners)
+
+            # get parameters order defined by accept_parameters
             params_order = PluginController.get_parameters(func)
 
-            if params_order:
-                PluginController.count_parameters(func, len(params_order))
-            else:
+            if params_order is None:
+                # make sure the number of functino's POSITIONAL_OR_KEYWORD
+                # parameters <= 3.
                 count = PluginController.count_parameters(func)
-                params_order = [RESOURCES, PRODUCTS, MESSAGES][:count]
+                # defualt
+                params_order = PluginController.AVALIABLE_PARA_NAMES[:count]
+            else:
+                # call count_parameters to check function's signature and make
+                # sure that the number of POSITIONAL_OR_KEYWORD parameters is
+                # exactly the same as the length of params_order
+                PluginController.count_parameters(func, len(params_order))
 
+            # filter assets.
             iter_params = [filter(check_func, params[name])
                            for name in params_order]
             processed_params = [list(iter_param) for iter_param in iter_params]
+            # here we go.
             return func(self, *processed_params)
         return run
 
