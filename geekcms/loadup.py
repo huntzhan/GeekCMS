@@ -3,7 +3,7 @@ import os
 import importlib
 from collections import OrderedDict
 
-from .utils import (SettingsLoader, ProjectSettings, ThemeSettings
+from .utils import (SettingsLoader, ProjectSettings, ThemeSettings,
                     ShareDate, PathResolver, SysPathContextManager)
 from .protocal import SetUpPlugin
 from .sequence_analyze import SequenceParser
@@ -100,5 +100,5 @@ class PluginLoader:
         parse_error, exec_orders = cls.get_execution_orders()
         match_error = cls.verify_plugins(exec_orders)
         if parse_error or match_error:
-            raise SyntaxError("Error happended, suspend program.')
+            raise SyntaxError('Error happended, suspend program.')
         return exec_orders
