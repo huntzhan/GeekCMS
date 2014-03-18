@@ -44,7 +44,9 @@ class SequenceParserTest(unittest.TestCase):
         return section['case'], self._get_suppose_result(section['result'])
 
     def test_fix_order_good_case(self):
-        cases = ['case1', 'case2', 'case3', 'case4', 'case5']
+        cases = ['case1', 'case2',  # base chain.
+                 'case3', 'case4',  # forward induction.
+                 'case5', 'case6']  # reverse induction.
         for case in cases:
             text, suppose_result = self._load_test_case(case)
             parser = SequenceParser()

@@ -1,0 +1,8 @@
+
+[Test]
+case:
+	b>>a
+	c 1>>a
+	d 2>>a
+result:
+	a, b, c, d
