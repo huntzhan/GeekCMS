@@ -1,0 +1,9 @@
+
+
+[Test]
+case:
+	a<<2d
+	b<<1d
+	c<<0d
+result:
+	a, b, c, d

@@ -43,11 +43,13 @@ class SequenceParserTest(unittest.TestCase):
         section = config['Test']
         return section['case'], self._get_suppose_result(section['result'])
 
-    def test_parser_with_good_case(self):
-        cases = ['case1', 'case2', 'case3', 'case4']
+    def test_fix_order_good_case(self):
+        cases = ['case1', 'case2', 'case3', 'case4', 'case5']
         for case in cases:
             text, suppose_result = self._load_test_case(case)
             parser = SequenceParser()
             parser.analyze(_THEME, text)
             result = parser.generate_sequence()
             self.assertListEqual(result, suppose_result)
+
+    #@unittest.expectedFailure
