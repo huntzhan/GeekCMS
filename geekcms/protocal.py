@@ -208,7 +208,8 @@ class PluginController:
         if isinstance(cls_defined_owner, str):
             cls_defined_owner = [cls_defined_owner]
 
-        # final_owners should be a container.
+        # final_owners should be a container, and owners definded by
+        # accept_owners is in higher priority.
         final_owners = decorator_defined_owners or cls_defined_owner
         return final_owners
 
@@ -244,6 +245,11 @@ class PluginController:
 class SetUpPlugin(type):
 
     plugin_mapping = _UniqueKeyDict()
+    context_theme = None
+
+    @classmethod
+    def unset_context_theme(cls):
+        cls.context_theme = None
 
     @classmethod
     def clean_up_registered_plugins(cls):
@@ -309,9 +315,12 @@ class SetUpPlugin(type):
 
     @classmethod
     def _set_up_plugin(cls, plugin_cls, namespace):
-        # find theme_name and plugin_name, should both be string.
         find_name = cls._find_case_insensitive_name
-        theme_name = find_name(_THEME, namespace)
+        # class-level attribute 'theme' could be omitted, in such case the name
+        # of theme's top-level directory would be adapt.
+        theme_name = find_name(_THEME, namespace) or cls.context_theme
+        # class-level attribute 'plugin' could be omitted, in such case the
+        # name of plugin class would be adapt.
         plugin_name = find_name(_PLUGIN, namespace) or plugin_cls.__name__
 
         # register plugin

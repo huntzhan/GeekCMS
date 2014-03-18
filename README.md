@@ -173,7 +173,7 @@ Every Plugin should inherit **geekcms.protocal.BasePlugin**, and overwrite the *
 
 Explanation of class-level attributes:
 
-* **theme**: value that would be used to filter resources, products or messages passed to **run** method. For instances, suppose class A, B both definded *theme = 'AB'*, and there is another class C definded *theme = 'C'*. If A's **run** method created some resources instance **owned by 'ab'**(details would be covered later), and suppose B and C were executed after A, then B's run method might receive instances of resource created by A(or might not, due to the parameter controller) while C's run method would not receive instances created by A.
+* **theme**: value that would be used to filter resources, products or messages passed to **run** method. For instances, suppose class A, B both definded *theme = 'AB'*, and there is another class C definded *theme = 'C'*. If A's **run** method created some resources instance **owned by 'ab'**(details would be covered later), and suppose B and C were executed after A, then B's run method might receive instances of resource created by A(or might not, due to the parameter controller) while C's run method would not receive instances created by A. This attribute could be omitted, in such case the name of theme's top-level directory would be adapt.
 * **plugin**: defines the name of plugin which related to the plugin names of **theme settings**. This attribute could be omitted, in that case, the class name would be used as the plugin name. 
 
 The **run** function is a bit more complicated. Since the bussiness of plugins various a lot, developers might defind **run** function with different parameters, such as:
