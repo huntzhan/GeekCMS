@@ -1,3 +1,54 @@
+"""
+Test Plan.
+
+PluginIndex:
+    test_unique:
+        make sure plugin index is hashable and its uniqueness.
+
+BaseResource, BaseProduct, BaseMessage, _BaseAsset:
+    test_init:
+        these class can not be initialized.
+
+Manager:
+    test_trace_one_class:
+        initialize single derived class of [BaseResource, BaseProduct,
+        BaseMessage,], make sure the manager can trace that instance.
+    test_trace_multi_classes:
+        initialize multiple derived classes of the same base class, make sure
+        the manager of base class can trace multiple instances.
+    test_usage:
+        make sure bussinesses of manager, such as create, add, remove and so
+        on, is correct.
+
+ManagerProxyWithOwner:
+    test_proxy:
+        make sure the method with 'owenr' in signature is binded properly.
+
+BasePlugin, SetUpPlugin, PluginController:
+    test_init:
+        ensure that BasePlugin would not be registered.
+    test_register:
+        ensure plugin is register by metaclass, and so as the process of
+        retrieving plugins.
+    test_theme_name:
+        1. definde class-level theme attr.
+        2. undefine class-level theme attr, but SetUpPlugin defines context
+        theme.
+        3. both class-level theme attr and context theme are defined. In
+    test_plugin_name:
+        1. define class-level plugin attr.
+        2. undefine ...
+    test_default_params:
+        1. test run method with 0~3 defined parameters(exclude self).
+        2. test run method with parameters more than 3.
+    test_accept_parameters:
+        make sure accept_parameters works.
+    test_accept_owners:
+        make sure accept_owners works, and that do not confilct with
+        theme_name.
+
+"""
+
 import unittest
 from collections import defaultdict
 from geekcms import protocal
