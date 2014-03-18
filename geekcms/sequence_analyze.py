@@ -166,7 +166,7 @@ class _Algorithm:
             yield group
 
     # implement 3.1.1
-    def _generate_relation_group_on_left_operand(self, exprs):
+    def _generate_left_relation_group(self, exprs):
         cmp_key_left = lambda x: (hash(x.left_operand), x.relation.degree)
         sorted_exprs_left = sorted(exprs, key=cmp_key_left)
         # group by left operand.
@@ -174,46 +174,17 @@ class _Algorithm:
             yield group
 
     # implement 3.1.2
-    def _generate_relation_group_on_right_operand(self, exprs):
+    def _generate_right_relation_group(self, exprs):
         cmp_key_right = lambda x: (hash(x.right_operand), x.relation.degree)
         sorted_exprs_right = sorted(exprs, key=cmp_key_right, reverse=True)
         # group by right operand.
         for group in self._yield_group(sorted_exprs_right, 'right_operand'):
             yield group
 
-    # implement 3.2.1
-    def _break_raw_relation_group_on_left_operand(self, relation_group):
-        new_group = []
-        special_rel = PluginRel(True, _SPECIAL_DEGREE)
-
-        last_operand = None
-        for expr in relation_group:
-
-            if last_operand is None:
-                # first expr
-                new_expr = PluginExpr(
-                    left_operand=expr.left_operand,
-                    right_operand=expr.right_operand,
-                    relation=special_rel,
-                )
-                new_group.append(new_expr)
-                # set up last_operand
-                last_operand = expr.right_operand
-                continue
-
-            combined_expr = PluginExpr(
-                left_operand=last_operand,
-                right_operand=expr.right_operand,
-                relation=special_rel,
-            )
-            new_group.append(combined_expr)
-            # update last_operand
-            last_operand = expr.right_operand
-
-        return new_group
-
-    # implement 3.2.2
-    def _break_raw_relation_group_on_right_operand(self, relation_group):
+    def _break_relation_group(self, relation_group, op_name, special_index):
+        """
+        op_name is the string of operand NOT to be gathered.
+        """
         new_group = []
         special_rel = PluginRel(True, _SPECIAL_DEGREE)
 
@@ -222,26 +193,40 @@ class _Algorithm:
 
             if last_operand is None:
                 # set up last_operand
-                last_operand = expr.left_operand
+                last_operand = getattr(expr, op_name)
                 continue
 
             combined_expr = PluginExpr(
                 left_operand=last_operand,
-                right_operand=expr.left_operand,
+                right_operand=getattr(expr, op_name),
                 relation=special_rel,
             )
             new_group.append(combined_expr)
             # update last_operand
-            last_operand = expr.left_operand
+            last_operand = getattr(expr, op_name)
 
+        special_expr = relation_group[special_index]
         new_expr = PluginExpr(
-            left_operand=relation_group[-1].left_operand,
-            right_operand=relation_group[-1].right_operand,
+            left_operand=special_expr.left_operand,
+            right_operand=special_expr.right_operand,
             relation=special_rel,
         )
-        new_group.append(new_expr)
+        if special_index == 0:
+            new_group.insert(0, new_expr)
+        elif special_index == -1:
+            new_group.append(new_expr)
+        else:
+            raise SyntaxError
 
         return new_group
+
+    # implement 3.2.1
+    def _break_left_relation_group(self, relation_group):
+        return self._break_relation_group(relation_group, 'right_operand', 0)
+
+    # implement 3.2.2
+    def _break_right_relation_group(self, relation_group):
+        return self._break_relation_group(relation_group, 'left_operand', -1)
 
     # implement 4 and 5
     def _generate_execution_order(self, relations, irrelevant_exprs):
@@ -295,16 +280,12 @@ class _Algorithm:
 
         new_relations = []
         # left operand.
-        for relation_group in\
-                self._generate_relation_group_on_left_operand(self._exprs):
-            new_group =\
-                self._break_raw_relation_group_on_left_operand(relation_group)
+        for relation_group in self._generate_left_relation_group(self._exprs):
+            new_group = self._break_left_relation_group(relation_group)
             new_relations.extend(new_group)
         # right operand.
-        for relation_group in\
-                self._generate_relation_group_on_right_operand(self._exprs):
-            new_group =\
-                self._break_raw_relation_group_on_right_operand(relation_group)
+        for relation_group in self._generate_right_relation_group(self._exprs):
+            new_group = self._break_right_relation_group(relation_group)
             new_relations.extend(new_group)
 
         return self._generate_execution_order(new_relations, irrelevant_exprs)
