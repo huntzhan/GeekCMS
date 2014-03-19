@@ -54,8 +54,8 @@ class Manager(UserDict):
 
     def __init__(self, target_cls, data=None):
         super().__init__()
-        # share data area
-        if data:
+        # share data area.
+        if isinstance(data, dict):
             self.data = data
         # class to init items
         self._target_cls = target_cls
@@ -122,15 +122,23 @@ class SetUpObjectManager(type):
     @classmethod
     def _get_manager_data(cls, result_cls):
         pre_manager = getattr(result_cls, cls.MANAGER_NAME, None)
-        if pre_manager:
-            return pre_manager.data
-        else:
+        # _BaseAsset would create the first manager, and all derived class
+        # would operated a shared data field.
+        if pre_manager is None:
             return None
+        else:
+            return pre_manager.data
 
-    def __new__(cls, cls_name, *args, **kwargs):
-        result_cls = super().__new__(cls, cls_name, *args, **kwargs)
-        data = cls._get_manager_data(result_cls)
-        setattr(result_cls, cls.MANAGER_NAME, Manager(result_cls, data))
+    def __new__(cls, *args, **kwargs):
+        result_cls = super().__new__(cls, *args, **kwargs)
+        # init share data for BaseResource, BaseProduct and BaseMessage.
+        if result_cls.__name__ != '_BaseAsset':
+            data = cls._get_manager_data(result_cls)
+            setattr(
+                result_cls,
+                cls.MANAGER_NAME,
+                Manager(result_cls, data),
+            )
         return result_cls
 
 
@@ -141,6 +149,9 @@ class _BaseAsset(metaclass=SetUpObjectManager):
         raise Exception(
             text.format(owner, args, kwargs),
         )
+
+    def set_owner(self, owner):
+        self.owner = owner
 
     @classmethod
     def get_manager_with_fixed_owner(cls, owner):
