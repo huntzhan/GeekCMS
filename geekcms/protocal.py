@@ -195,7 +195,8 @@ class PluginController:
     def accept_owners(cls, *owners):
         def decorator(func):
             setattr(func, cls.ACCEPT_OWNERS_ATTR, owners)
-        return func
+            return func
+        return decorator
 
     # Control incoming parameter.
     @classmethod
