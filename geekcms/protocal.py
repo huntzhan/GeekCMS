@@ -99,7 +99,7 @@ class Manager(UserDict):
         return result
 
     def clear(self):
-        self.data = {}
+        self.data.clear()
 
 
 class ManagerProxyWithOwner:
