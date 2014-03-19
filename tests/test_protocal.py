@@ -8,6 +8,8 @@ PluginIndex:
 BaseResource, BaseProduct, BaseMessage, _BaseAsset:
     test_init:
         these class can not be initialized.
+    test_access_manager_from_instance:
+        manager can not be accessed from instance.
 
 Manager:
     test_trace_one_class:
@@ -25,8 +27,6 @@ ManagerProxyWithOwner:
         make sure the method with 'owenr' in signature is binded properly.
 
 BasePlugin, SetUpPlugin, PluginController:
-    test_init:
-        ensure that BasePlugin would not be registered.
     test_register:
         ensure plugin is register by metaclass, and so as the process of
         retrieving plugins.
@@ -34,7 +34,6 @@ BasePlugin, SetUpPlugin, PluginController:
         1. definde class-level theme attr.
         2. undefine class-level theme attr, but SetUpPlugin defines context
         theme.
-        3. both class-level theme attr and context theme are defined. In
     test_plugin_name:
         1. define class-level plugin attr.
         2. undefine ...
@@ -54,15 +53,95 @@ from collections import defaultdict
 from geekcms import protocal
 
 
-class ManagerTest(unittest.TestCase):
+class PluginIndexTest(unittest.TestCase):
+
+    def test_unique(self):
+        item_1 = protocal.PluginIndex('a', 'b')
+        item_2 = protocal.PluginIndex('a', 'c')
+        self.assertEqual(item_1, 'a.b')
+        self.assertNotEqual(item_1, item_2)
+
+
+class AssetTest(unittest.TestCase):
+
+    def setUp(self):
+        class TestClass(protocal.BaseResource):
+            def __init__(self, owner):
+                self.set_owner(owner)
+
+        self.TestClass = TestClass
+
+    def test_init(self):
+        owner = 'testowner'
+        attr = 'testattr'
+
+        item = self.TestClass(owner)
+        self.assertEqual(item.owner, owner)
+
+        self.assertIsInstance(item, self.TestClass)
+        self.assertNotIsInstance(item, protocal.BaseProduct)
+
+    def test_access_manager_from_instance(self):
+        with self.assertRaises(Exception):
+            item = self.TestClass('testowner')
+            # access
+            item.objects
+        with self.assertRaises(Exception):
+            item = self.TestClass('testowner')
+            # assign
+            item.objects = None
+        with self.assertRaises(Exception):
+            # remove
+            item = self.TestClass('testowner')
+            del item.objects
+
+
+class ManagerRegisterTest(unittest.TestCase):
+
+    def setUp(self):
+        protocal.BaseResource.objects.clear()
+        # create test class
+        class TestAsset(protocal.BaseResource):
+            def __init__(self, owner):
+                self.set_owner(owner)
+
+        self.TestAsset = TestAsset
+
+        self.owner = 'testowner'
+
+    def test_trace_one_class(self):
+        # get binded owner
+        manager = self.TestAsset.get_manager_with_fixed_owner(self.owner)
+        item = manager.create()
+        self.assertEqual(item.owner, self.owner)
+        self.assertIsInstance(item, self.TestAsset)
+
+    def test_trace_multi_classes(self):
+        # TestAsset and AnotherTestAsset both derived from BaseResource.
+        class AnotherTestAsset(protocal.BaseResource):
+            def __init__(self, owner):
+                self.set_owner(owner)
+
+        first_item = self.TestAsset.objects.create(self.owner)
+        second_item = AnotherTestAsset.objects.create(self.owner)
+
+        # get all assets.
+        self.assertSetEqual(
+            set((first_item, second_item)),
+            set(protocal.BaseResource.objects.values()),
+        )
+
+        # exclusive share field.
+        self.assertFalse(protocal.BaseProduct.objects.values())
+        self.assertFalse(protocal.BaseMessage.objects.values())
+
+
+class ManagerUsageTest(unittest.TestCase):
 
     def setUp(self):
         class TestClass:
             def __init__(self, owner):
                 self.owner = owner
-
-            def __repr__(self):
-                return '{}({})'.format('TestCase', self.owner)
 
         self.TestClass = TestClass
         self.owner = 'testowner'
@@ -103,6 +182,18 @@ class ManagerTest(unittest.TestCase):
             {item_1, item_2},
         )
 
+
+class ManagerProxyWithOwnerTest(unittest.TestCase):
+
+    def setUp(self):
+        class TestClass:
+            def __init__(self, owner):
+                self.owner = owner
+
+        self.TestClass = TestClass
+        self.owner = 'testowner'
+        self.manager = protocal.Manager(TestClass)
+
     def test_proxy(self):
         proxy = protocal.ManagerProxyWithOwner(self.owner, self.manager)
 
@@ -121,166 +212,193 @@ class ManagerTest(unittest.TestCase):
         self.assertListEqual(proxy.values(), [item])
 
 
-class PluginIndexTest(unittest.TestCase):
-
-    def test_plugin(self):
-        item_1 = protocal.PluginIndex('a', 'b')
-        item_2 = protocal.PluginIndex('a', 'c')
-        self.assertEqual(item_1, 'a.b')
-        self.assertNotEqual(item_1, item_2)
-
-
-class _BaseAssetTest(unittest.TestCase):
-
-    def setUp(self):
-        class TestClass(protocal._BaseAsset):
-            def __init__(self, owner):
-                self.owner = owner
-
-        self.TestClass = TestClass
-
-    def test_init(self):
-        owner = 'testowner'
-        attr = 'testattr'
-
-        item = self.TestClass(owner)
-        self.assertEqual(item.owner, owner)
-
-        item.attr = attr
-        self.assertEqual(item.attr, attr)
-
-        self.assertIsInstance(item, self.TestClass)
-
-    def test_manager(self):
-        owner = 'testowner'
-        manager = self.TestClass.get_manager_with_fixed_owner(owner)
-        item = manager.create()
-        self.assertEqual(item.owner, owner)
-        self.assertIsInstance(item, self.TestClass)
-
-    def test_manager_attr_op(self):
-        with self.assertRaises(Exception) as e:
-            item = self.TestClass('testowner')
-            # access
-            item.objects
-        with self.assertRaises(Exception) as e:
-            item = self.TestClass('testowner')
-            # assign
-            item.objects = None
-        with self.assertRaises(Exception) as e:
-            # remove
-            item = self.TestClass('testowner')
-            del item.objects
-
-    def test_resource_product_message(self):
-        owner = 'testowner'
-
-        class ResourceTest(protocal.BaseResource):
-            def __init__(self, owner):
-                self.owner = owner
-
-        class ProductTest(protocal.BaseProduct):
-            def __init__(self, owner):
-                self.owner = owner
-
-        self.assertEqual(
-            issubclass(ResourceTest, protocal.BaseResource),
-            True,
-        )
-        self.assertEqual(
-            issubclass(ProductTest, protocal.BaseResource),
-            False,
-        )
-        self.assertIsInstance(
-            ResourceTest.objects.create(owner),
-            ResourceTest,
-        )
-
-
 class PluginTest(unittest.TestCase):
 
     def setUp(self):
+        # clean up
+        protocal.BaseResource.objects.clear()
+        protocal.BaseProduct.objects.clear()
+        protocal.BaseMessage.objects.clear()
         protocal.SetUpPlugin.clean_up_registered_plugins()
+        protocal.SetUpPlugin.unset_context_theme()
 
-    def test_plugin_registration(self):
-        theme_name = 'testtheme'
-        plugin_name = 'testplugin'
+        self.theme_name = 'testtheme'
+        self.plugin_name = 'testplugin'
 
+    def test_register(self):
         class TestPlugin(protocal.BasePlugin):
-            theme = theme_name
-            plugin = plugin_name
+            theme = self.theme_name
+            plugin = self.plugin_name
 
-            def __init__(self):
+            def run(self):
                 pass
-
-            def run(self, assets, messages):
-                return assets, messages
-
-        class MissPluginName(protocal.BasePlugin):
-            theme = theme_name
-
-            def __init__(self):
-                pass
-
-            def run(self, assets, messages):
-                return assets, messages
-
-        supposed_plugins = {
-            protocal.PluginIndex(theme_name, plugin_name): TestPlugin,
-            protocal.PluginIndex(theme_name, 'MissPluginName'): MissPluginName,
-        }
 
         self.assertDictEqual(
-            protocal.get_registered_plugins(),
-            supposed_plugins,
+            protocal.SetUpPlugin.get_registered_plugins(),
+            {protocal.PluginIndex(self.theme_name, self.plugin_name):
+             TestPlugin},
         )
 
-    def test_assets_filter(self):
-        theme_name = 'a'
-        noise_name = 'b'
+    def test_theme_name(self):
 
-        pcl = protocal.PluginController
+        protocal.SetUpPlugin.context_theme = self.theme_name
+        temp_theme_name = 'theme_name_for_test'
 
-        class TestPlugin(protocal.BasePlugin):
-            theme = theme_name
+        class PluginWithThemeName(protocal.BasePlugin):
+            theme = temp_theme_name
+            plugin = self.plugin_name
 
-            def __init__(self):
+            def run(self):
                 pass
 
-            @pcl.accept_parameters(pcl.RESOURCES, pcl.MESSAGES)
-            def run(self, resources, messages):
-                return resources, messages
+        class PluginWithoutThemeName(protocal.BasePlugin):
+            plugin = self.plugin_name
+
+            def run(self):
+                pass
+
+        self.assertSetEqual(
+            # get theme_names
+            set(protocal.SetUpPlugin.get_registered_plugins()),
+            set((
+                protocal.PluginIndex(temp_theme_name, self.plugin_name),
+                protocal.PluginIndex(self.theme_name, self.plugin_name),
+            )),
+        )
+
+    def test_plugin_name(self):
+
+        protocal.SetUpPlugin.context_theme = self.theme_name
+
+        class PluginWithPluginName(protocal.BasePlugin):
+            plugin = self.plugin_name
+
+            def run(self):
+                pass
+
+        class PluginWithoutPluginName(protocal.BasePlugin):
+
+            def run(self):
+                pass
+
+        self.assertSetEqual(
+            # get theme_names
+            set(protocal.SetUpPlugin.get_registered_plugins()),
+            set((
+                protocal.PluginIndex(self.theme_name, self.plugin_name),
+                protocal.PluginIndex(self.theme_name,
+                                     'PluginWithoutPluginName'),
+            )),
+        )
+
+    def test_default_params(self):
 
         class TestResource(protocal.BaseResource):
             def __init__(self, owner):
-                self.owner = owner
+                self.set_owner(owner)
+
+        class TestProduct(protocal.BaseProduct):
+            def __init__(self, owner):
+                self.set_owner(owner)
 
         class TestMessage(protocal.BaseMessage):
             def __init__(self, owner):
-                self.owner = owner
+                self.set_owner(owner)
 
-        resource_manager =\
-            TestPlugin.get_manager_bind_with_plugin(TestResource)
-        message_manager =\
-            TestPlugin.get_manager_bind_with_plugin(TestMessage)
+        theme_zero = 'zero'
+        theme_one = 'one'
+        theme_three = 'three'
 
-        supposed_resources = set()
-        supposed_messages = set()
-        for i in range(10):
-            supposed_resources.add(resource_manager.create())
-            supposed_messages.add(message_manager.create())
-            TestResource.objects.create(noise_name)
-            TestMessage.objects.create(noise_name)
+        for theme_name in [theme_zero, theme_one, theme_three]:
+            TestResource.objects.create(theme_name)
+            TestProduct.objects.create(theme_name)
+            TestMessage.objects.create(theme_name)
+
+        test_self = self
+
+        class PluginZeroParam(protocal.BasePlugin):
+            theme = theme_zero
+
+            def run(self):
+                pass
+
+        class PluginOneParam(protocal.BasePlugin):
+            theme = theme_one
+
+            def run(self, resources):
+                test_self.assertEqual(len(resources), 1)
+                test_self.assertIsInstance(resources[0], TestResource)
+
+        class PluginThreeParam(protocal.BasePlugin):
+            theme = theme_three
+
+            def run(self, resources, products, messages):
+                test_self.assertEqual(len(resources), 1)
+                test_self.assertEqual(len(products), 1)
+                test_self.assertEqual(len(messages), 1)
+
+                test_self.assertIsInstance(resources[0], TestResource)
+                test_self.assertIsInstance(products[0], TestProduct)
+                test_self.assertIsInstance(messages[0], TestMessage)
+
+        plugin_mapping = protocal.SetUpPlugin.get_registered_plugins().items()
+
+        for _, plugin_cls in plugin_mapping:
+            plugin = plugin_cls()
+            plugin.run(
+                protocal.BaseResource.objects.values(),
+                protocal.BaseProduct.objects.values(),
+                protocal.BaseMessage.objects.values(),
+            )
+
+
+    def test_accept_parameters(self):
+        protocal.SetUpPlugin.context_theme = self.theme_name
+        pcl = protocal.PluginController
+        test_self = self
+
+        class TestMessage(protocal.BaseMessage):
+            def __init__(self, owner):
+                self.set_owner(owner)
+
+        TestMessage.objects.create(self.theme_name)
+
+        class TestPlugin(protocal.BasePlugin):
+
+            @pcl.accept_parameters(pcl.MESSAGES)
+            def run(self, messages):
+                test_self.assertEqual(len(messages), 1)
+                test_self.assertIsInstance(messages[0], TestMessage)
 
         plugin = TestPlugin()
-        resources, messages = plugin.run(
-            TestResource.objects.values(),
+        plugin.run(
             None,
-            TestMessage.objects.values(),
+            None,
+            protocal.BaseMessage.objects.values(),
         )
-        self.assertSetEqual(set(resources), supposed_resources)
-        self.assertSetEqual(set(messages), supposed_messages)
 
+    def test_accept_owners(self):
+        protocal.SetUpPlugin.context_theme = self.theme_name
+        pcl = protocal.PluginController
+        test_self = self
+
+        class TestResource(protocal.BaseResource):
+            def __init__(self, owner):
+                self.set_owner(owner)
+
+        target_theme_name = 'a'
+        noice_theme_name = 'b'
+
+        TestResource.objects.create(target_theme_name)
+        TestResource.objects.create(noice_theme_name)
+
+        class TestPlugin(protocal.BasePlugin):
+            theme = noice_theme_name
+
+            @pcl.accept_owners(target_theme_name)
+            def run(self, resources):
+                test_self.assertEqual(len(resources), 1)
+                test_self.assertIsInstance(messages[0], TestResource)
 
 if __name__ == '__main__':
     unittest.main()
