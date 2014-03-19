@@ -4,6 +4,7 @@ from functools import partial
 from functools import wraps
 from inspect import signature
 from inspect import Parameter
+import types
 
 
 _THEME = 'theme'
@@ -97,6 +98,9 @@ class Manager(UserDict):
             result.extend(items)
         return result
 
+    def clear(self):
+        self.data = {}
+
 
 class ManagerProxyWithOwner:
 
@@ -124,10 +128,10 @@ class SetUpObjectManager(type):
         pre_manager = getattr(result_cls, cls.MANAGER_NAME, None)
         # _BaseAsset would create the first manager, and all derived class
         # would operated a shared data field.
-        if pre_manager is None:
-            return None
-        else:
+        if isinstance(pre_manager, Manager):
             return pre_manager.data
+        else:
+            return None
 
     def __new__(cls, *args, **kwargs):
         result_cls = super().__new__(cls, *args, **kwargs)
@@ -203,8 +207,6 @@ class PluginController:
         # just add __accept_params__ and __signature__.
         def decorator(func):
             setattr(func, cls.ACCEPT_PARAMS_ATTR, params)
-            # protocal of inspect.signature
-            func.__signature__ = signature(func)
             return func
         return decorator
 
@@ -236,7 +238,8 @@ class PluginController:
     @classmethod
     def count_parameters(cls, func, expect_num=None):
         # get __signature__ of func, or generate a new signature of func.
-        sig = signature(func)
+        bound_func = types.MethodType(func, object)
+        sig = signature(bound_func)
 
         count = 0
         for name, para in sig.parameters.items():
@@ -245,8 +248,7 @@ class PluginController:
                 count += 1
         if count > 3:
             raise SyntaxError('Require only 0~3 positional parameters.')
-        # self is counted
-        if expect_num and count != (expect_num + 1):
+        if expect_num and count != expect_num:
             raise SyntaxError(
                 'Require {} positional parameters'.format(expect_num),
             )
@@ -281,6 +283,10 @@ class SetUpPlugin(type):
     @classmethod
     def get_plugin(cls, plugin_index):
         return cls.plugin_mapping.get(plugin_index, None)
+
+    @classmethod
+    def get_registered_plugins(cls):
+        return dict(cls.plugin_mapping)
 
     @classmethod
     def _data_filter(cls, func=None, owner=''):
@@ -371,7 +377,3 @@ class BasePlugin(metaclass=SetUpPlugin):
     # Otherwise, use 'accept_parameters' to control parameters.
     def run(self, resources=None, products=None, messages=None):
         raise Exception('In BasePlugin.')
-
-
-def get_registered_plugins():
-    return dict(SetUpPlugin.plugin_mapping)
