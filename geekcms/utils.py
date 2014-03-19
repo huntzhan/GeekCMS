@@ -15,7 +15,11 @@ class SettingsLoader:
     PROJECT_GLOBAL = 'global'
 
     def __init__(self, path, name=None):
+        # settings of project has 'global' as its prefix.
         self.name = name or self.PROJECT_GLOBAL
+        # check and save path
+        if not os.path.exists(path):
+            raise Exception('{} Not Exists.'.format(path))
         self.path = path
 
     def _load_settings(self):
