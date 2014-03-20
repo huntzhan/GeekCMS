@@ -47,7 +47,9 @@ class _SearchData:
         if not isinstance(loaders, abc.Iterable):
             loaders = [loaders]
         for loader in loaders:
-            cls._vars[loader.name] = loader.get_section(cls.DATA_FIELD)
+            section = loader.get_section(cls.DATA_FIELD)
+            if section:
+                cls._vars[loader.name] = section
 
     @classmethod
     def clear(cls):
