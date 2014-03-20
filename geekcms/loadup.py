@@ -9,7 +9,7 @@ from .protocal import SetUpPlugin
 from .sequence_analyze import SequenceParser
 
 
-class SettingsLoader:
+class SettingsProcedure:
 
     @classmethod
     def load_share_data(cls, loaders):
@@ -51,13 +51,13 @@ class SettingsLoader:
                 importlib.import_module(theme_name)
 
     @classmethod
-    def run(cls):
-        PathResolver.set_project_path(os.getcwd())
+    def run(cls, project_path):
+        PathResolver.set_project_path(project_path)
         cls.load_settings()
         cls.load_themes()
 
 
-class PluginLoader:
+class PluginProcedure:
     runtime_components = ['pre_load', 'in_load', 'post_load',
                           'pre_process', 'in_process', 'post_process',
                           'pre_write', 'in_write', 'post_write']

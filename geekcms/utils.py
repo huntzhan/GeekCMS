@@ -40,8 +40,6 @@ class SettingsLoader:
 class _SearchData:
 
     DATA_FIELD = None
-    _vars = {}
-    _cache = {}
 
     @classmethod
     def load_data(cls, loaders):
@@ -107,11 +105,15 @@ class _SearchData:
 class ShareData(_SearchData):
 
     DATA_FIELD = 'Share'
+    _vars = {}
+    _cache = {}
 
 
 class ProjectSettings(_SearchData):
 
     DATA_FIELD = 'RegisterTheme'
+    _vars = {}
+    _cache = {}
 
     @classmethod
     def get_registered_theme_name(cls):
@@ -126,6 +128,8 @@ class ProjectSettings(_SearchData):
 class ThemeSettings(_SearchData):
 
     DATA_FIELD = 'RegisterPlugin'
+    _vars = {}
+    _cache = {}
 
 
 class PathResolver:
