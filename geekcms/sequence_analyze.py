@@ -59,14 +59,14 @@ Algorithm:
         considered as the left operand, with no relation and right operand.
         1.4 '<<' is transform to '<<0', and so '>>'.
     2. Preparation for generating plugin execution order.
-        2.1 Transform 'x p>> y' to 'y <<p x'.
-        2.2 Transform operand to the form of (theme, plugin), based on
+        2.1 Transform operand to the form of (theme, plugin), based on
         'theme.plugin'. If 'theme.' part is omitted, then automatically
         generate theme with respect to file's directory(where relation
         expressions were loaded).
-        2.3 Expressions that has left operand with no relation and right
+        2.2 Expressions that has left operand with no relation and right
         operand, would be removed and kept in somewhere else. Such expressions
         would not be used to generating relation group(step 3).
+        2.3 Transform 'x p>> y' to 'y <<p x'.
     3. Generate relation groups.
     A relation group: {(x <<p y)| for x, all avaliable (p, y) in expressions}.
         3.1 Sort expressions(x <<p y) with respect to x's value, then with p's
@@ -125,10 +125,9 @@ class _Algorithm:
     def __init__(self, exprs):
         self._exprs = []
         for container in exprs:
-            for expr in container:
-                self._exprs.append(expr)
+            self._exprs.extend(container)
 
-    # implement 2.1
+    # implement 2.3
     def _transform_to_left_rel(self):
         for expr in self._exprs:
             relation = expr.relation
@@ -139,18 +138,13 @@ class _Algorithm:
             expr.left_operand, expr.right_operand =\
                 expr.right_operand, expr.left_operand
 
-    # implement 2.3
+    # implement 2.2
     def _remove_irrelevant_exprs(self):
-
-        def is_irrelevant(expr):
-            if expr.relation is None\
-                    and expr.right_operand is None:
-                return True
-            return False
 
         irrelevant_exprs = []
         for expr in self._exprs[:]:
-            if is_irrelevant(expr):
+            # if expr.relation is None, then expr is so called irrelevant.
+            if expr.relation is None:
                 self._exprs.remove(expr)
                 irrelevant_exprs.append(expr)
         return irrelevant_exprs
@@ -275,8 +269,8 @@ class _Algorithm:
 
     # Mix up all above functions.
     def generate_sequence(self):
-        self._transform_to_left_rel()
         irrelevant_exprs = self._remove_irrelevant_exprs()
+        self._transform_to_left_rel()
 
         new_relations = []
         # left operand.
