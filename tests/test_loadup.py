@@ -47,7 +47,7 @@ class ProcedureTest(unittest.TestCase):
 
     def test_plugin_run(self):
         SettingsProcedure.run(self.project_path)
-        flat_orders = PluginProcedure.run()
+        flat_orders, cli_indices = PluginProcedure.run()
 
         self.assertSetEqual(
             set(flat_orders),
