@@ -4,7 +4,7 @@ import importlib
 from collections import OrderedDict
 
 from .utils import (SettingsLoader, ProjectSettings, ThemeSettings,
-                    ShareDate, PathResolver, SysPathContextManager)
+                    ShareData, PathResolver, SysPathContextManager)
 from .protocal import SetUpPlugin
 from .sequence_analyze import SequenceParser
 
@@ -13,7 +13,7 @@ class SettingsLoader:
 
     @classmethod
     def load_share_data(cls, loaders):
-        ShareDate.load_data(loaders)
+        ShareData.load_data(loaders)
 
     @classmethod
     def load_project_settings(cls, path):

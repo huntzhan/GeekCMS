@@ -21,6 +21,8 @@ class SettingsLoader:
         if not os.path.exists(path):
             raise Exception('{} Not Exists.'.format(path))
         self.path = path
+        # load up
+        self._load_settings()
 
     def _load_settings(self):
         config = configparser.ConfigParser()
@@ -50,8 +52,13 @@ class _SearchData:
             cls._vars[loader.name] = loader.get_section(cls.DATA_FIELD)
 
     @classmethod
+    def clear(cls):
+        cls._vars.clear()
+        cls._cache.clear()
+
+    @classmethod
     def _access_vars(cls, section_name, key):
-        section = cls._cache.get(section_name, None)
+        section = cls._vars.get(section_name, None)
         if section:
             val = section.get(key, None)
             return val
@@ -97,7 +104,7 @@ class _SearchData:
         return None
 
 
-class ShareDate(_SearchData):
+class ShareData(_SearchData):
 
     DATA_FIELD = 'Share'
 
@@ -105,14 +112,15 @@ class ShareDate(_SearchData):
 class ProjectSettings(_SearchData):
 
     DATA_FIELD = 'RegisterTheme'
-    THEMES_KEY = 'Themes'
 
     @classmethod
     def get_registered_theme_name(cls):
-        plain_text = cls.get(cls.THEMES_KEY)
+        THEMES_KEY = 'themes'
+        plain_text = cls.get(THEMES_KEY)
         # yep, name of themes is split by whitespaces.
         theme_names = re.split(r'\s+', plain_text)
-        return theme_names
+        # remove empty string.
+        return [name for name in theme_names if name]
 
 
 class ThemeSettings(_SearchData):
