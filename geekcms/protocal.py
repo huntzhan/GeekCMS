@@ -7,11 +7,6 @@ from inspect import Parameter
 import types
 
 
-_THEME = 'theme'
-_PLUGIN = 'plugin'
-_PLUGIN_RUN_METHOD_NAME = 'run'
-
-
 class _UniqueKeyDict(dict):
 
     def __setitem__(self, key, val):
@@ -256,7 +251,10 @@ class PluginController:
         return count
 
 
-class SetUpPlugin(type):
+class PluginRegister(type):
+
+    THEME = 'theme'
+    PLUGIN = 'plugin'
 
     plugin_mapping = _UniqueKeyDict()
     context_theme = None
@@ -277,17 +275,56 @@ class SetUpPlugin(type):
         return None
 
     @classmethod
-    def _register_plugin(cls, theme_name, plugin_name, plugin_cls):
-        plugin_index = PluginIndex(theme_name, plugin_name)
-        cls.plugin_mapping[plugin_index] = plugin_cls
-
-    @classmethod
     def get_plugin(cls, plugin_index):
         return cls.plugin_mapping.get(plugin_index, None)
 
     @classmethod
     def get_registered_plugins(cls):
         return dict(cls.plugin_mapping)
+
+    @classmethod
+    def _get_theme_name(cls, namespace):
+        find_name = cls._find_case_insensitive_name
+        # class-level attribute 'theme' could be omitted, in such case the name
+        # of theme's top-level directory would be adapt.
+        theme_name = find_name(cls.THEME, namespace) or cls.context_theme
+        # class-level attribute 'plugin' could be omitted, in such case the
+        return theme_name
+
+    @classmethod
+    def _get_plugin_name(cls, plugin_cls, namespace):
+        find_name = cls._find_case_insensitive_name
+        # name of plugin class would be adapt.
+        plugin_name = find_name(cls.PLUGIN, namespace) or plugin_cls.__name__
+        return plugin_name
+
+    @classmethod
+    def _register_plugin(cls, plugin_cls, namespace):
+
+        plugin_name = cls._get_plugin_name(plugin_cls, namespace)
+        theme_name = cls._get_theme_name(namespace)
+
+        # register plugin
+        plugin_index = PluginIndex(theme_name, plugin_name)
+        cls.plugin_mapping[plugin_index] = plugin_cls
+
+    @classmethod
+    def _should_process(cls, cls_name):
+        return cls_name not in ['BasePlugin', 'BaseExtendedProcedure']
+
+    def __new__(cls, cls_name, bases, namespace, **kargs):
+
+        plugin_cls = super().__new__(cls,
+                                     cls_name, bases, namespace,
+                                     **kargs)
+        if cls._should_process(cls_name):
+            cls._register_plugin(plugin_cls, namespace)
+        return plugin_cls
+
+
+class PluginRegisterAndRunFilter(PluginRegister):
+
+    PLUGIN_RUN_METHOD_NAME = 'run'
 
     @classmethod
     def _data_filter(cls, func=None, owner=''):
@@ -331,38 +368,26 @@ class SetUpPlugin(type):
             return func(self, *processed_params)
         return run
 
-    @classmethod
-    def _set_up_plugin(cls, plugin_cls, namespace):
-        find_name = cls._find_case_insensitive_name
-        # class-level attribute 'theme' could be omitted, in such case the name
-        # of theme's top-level directory would be adapt.
-        theme_name = find_name(_THEME, namespace) or cls.context_theme
-        # class-level attribute 'plugin' could be omitted, in such case the
-        # name of plugin class would be adapt.
-        plugin_name = find_name(_PLUGIN, namespace) or plugin_cls.__name__
-
-        # register plugin
-        cls._register_plugin(theme_name, plugin_name, plugin_cls)
-
-        # filter data for run method.
-        process_func = getattr(plugin_cls, _PLUGIN_RUN_METHOD_NAME)
-        setattr(
-            plugin_cls,
-            _PLUGIN_RUN_METHOD_NAME,
-            cls._data_filter(process_func, theme_name),
-        )
-
     def __new__(cls, cls_name, bases, namespace, **kargs):
 
         plugin_cls = super().__new__(cls,
                                      cls_name, bases, namespace,
                                      **kargs)
-        if cls_name != 'BasePlugin':
-            cls._set_up_plugin(plugin_cls, namespace)
+
+        if cls._should_process(cls_name):
+            theme_name = cls._get_theme_name(namespace)
+            # filter data for run method.
+            process_func = getattr(plugin_cls, cls.PLUGIN_RUN_METHOD_NAME)
+            setattr(
+                plugin_cls,
+                cls.PLUGIN_RUN_METHOD_NAME,
+                cls._data_filter(process_func, theme_name),
+            )
+
         return plugin_cls
 
 
-class BasePlugin(metaclass=SetUpPlugin):
+class BasePlugin(metaclass=PluginRegisterAndRunFilter):
 
     @classmethod
     def get_manager_bind_with_plugin(cls, other_cls):

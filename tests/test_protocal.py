@@ -26,13 +26,13 @@ ManagerProxyWithOwner:
     test_proxy:
         make sure the method with 'owenr' in signature is binded properly.
 
-BasePlugin, SetUpPlugin, PluginController:
+BasePlugin, PluginRegister, PluginController:
     test_register:
         ensure plugin is register by metaclass, and so as the process of
         retrieving plugins.
     test_theme_name:
         1. definde class-level theme attr.
-        2. undefine class-level theme attr, but SetUpPlugin defines context
+        2. undefine class-level theme attr, but PluginRegister defines context
         theme.
     test_plugin_name:
         1. define class-level plugin attr.
@@ -66,6 +66,7 @@ class AssetTest(unittest.TestCase):
 
     def setUp(self):
         class TestClass(protocal.BaseResource):
+
             def __init__(self, owner):
                 self.set_owner(owner)
 
@@ -100,8 +101,10 @@ class ManagerRegisterTest(unittest.TestCase):
 
     def setUp(self):
         protocal.BaseResource.objects.clear()
+
         # create test class
         class TestAsset(protocal.BaseResource):
+
             def __init__(self, owner):
                 self.set_owner(owner)
 
@@ -119,6 +122,7 @@ class ManagerRegisterTest(unittest.TestCase):
     def test_trace_multi_classes(self):
         # TestAsset and AnotherTestAsset both derived from BaseResource.
         class AnotherTestAsset(protocal.BaseResource):
+
             def __init__(self, owner):
                 self.set_owner(owner)
 
@@ -140,6 +144,7 @@ class ManagerUsageTest(unittest.TestCase):
 
     def setUp(self):
         class TestClass:
+
             def __init__(self, owner):
                 self.owner = owner
 
@@ -187,6 +192,7 @@ class ManagerProxyWithOwnerTest(unittest.TestCase):
 
     def setUp(self):
         class TestClass:
+
             def __init__(self, owner):
                 self.owner = owner
 
@@ -219,8 +225,8 @@ class PluginTest(unittest.TestCase):
         protocal.BaseResource.objects.clear()
         protocal.BaseProduct.objects.clear()
         protocal.BaseMessage.objects.clear()
-        protocal.SetUpPlugin.clean_up_registered_plugins()
-        protocal.SetUpPlugin.unset_context_theme()
+        protocal.PluginRegister.clean_up_registered_plugins()
+        protocal.PluginRegister.unset_context_theme()
 
         self.theme_name = 'testtheme'
         self.plugin_name = 'testplugin'
@@ -234,14 +240,14 @@ class PluginTest(unittest.TestCase):
                 pass
 
         self.assertDictEqual(
-            protocal.SetUpPlugin.get_registered_plugins(),
+            protocal.PluginRegister.get_registered_plugins(),
             {protocal.PluginIndex(self.theme_name, self.plugin_name):
              TestPlugin},
         )
 
     def test_theme_name(self):
 
-        protocal.SetUpPlugin.context_theme = self.theme_name
+        protocal.PluginRegister.context_theme = self.theme_name
         temp_theme_name = 'theme_name_for_test'
 
         class PluginWithThemeName(protocal.BasePlugin):
@@ -259,16 +265,16 @@ class PluginTest(unittest.TestCase):
 
         self.assertSetEqual(
             # get theme_names
-            set(protocal.SetUpPlugin.get_registered_plugins()),
+            set(protocal.PluginRegister.get_registered_plugins()),
             set((
                 protocal.PluginIndex(temp_theme_name, self.plugin_name),
                 protocal.PluginIndex(self.theme_name, self.plugin_name),
-            )),
+                )),
         )
 
     def test_plugin_name(self):
 
-        protocal.SetUpPlugin.context_theme = self.theme_name
+        protocal.PluginRegister.context_theme = self.theme_name
 
         class PluginWithPluginName(protocal.BasePlugin):
             plugin = self.plugin_name
@@ -283,25 +289,28 @@ class PluginTest(unittest.TestCase):
 
         self.assertSetEqual(
             # get theme_names
-            set(protocal.SetUpPlugin.get_registered_plugins()),
+            set(protocal.PluginRegister.get_registered_plugins()),
             set((
                 protocal.PluginIndex(self.theme_name, self.plugin_name),
                 protocal.PluginIndex(self.theme_name,
                                      'PluginWithoutPluginName'),
-            )),
+                )),
         )
 
     def test_default_params(self):
 
         class TestResource(protocal.BaseResource):
+
             def __init__(self, owner):
                 self.set_owner(owner)
 
         class TestProduct(protocal.BaseProduct):
+
             def __init__(self, owner):
                 self.set_owner(owner)
 
         class TestMessage(protocal.BaseMessage):
+
             def __init__(self, owner):
                 self.set_owner(owner)
 
@@ -341,7 +350,8 @@ class PluginTest(unittest.TestCase):
                 test_self.assertIsInstance(products[0], TestProduct)
                 test_self.assertIsInstance(messages[0], TestMessage)
 
-        plugin_mapping = protocal.SetUpPlugin.get_registered_plugins().items()
+        plugin_mapping =\
+            protocal.PluginRegister.get_registered_plugins().items()
 
         for _, plugin_cls in plugin_mapping:
             plugin = plugin_cls()
@@ -351,13 +361,13 @@ class PluginTest(unittest.TestCase):
                 protocal.BaseMessage.objects.values(),
             )
 
-
     def test_accept_parameters(self):
-        protocal.SetUpPlugin.context_theme = self.theme_name
+        protocal.PluginRegister.context_theme = self.theme_name
         pcl = protocal.PluginController
         test_self = self
 
         class TestMessage(protocal.BaseMessage):
+
             def __init__(self, owner):
                 self.set_owner(owner)
 
@@ -378,11 +388,12 @@ class PluginTest(unittest.TestCase):
         )
 
     def test_accept_owners(self):
-        protocal.SetUpPlugin.context_theme = self.theme_name
+        protocal.PluginRegister.context_theme = self.theme_name
         pcl = protocal.PluginController
         test_self = self
 
         class TestResource(protocal.BaseResource):
+
             def __init__(self, owner):
                 self.set_owner(owner)
 

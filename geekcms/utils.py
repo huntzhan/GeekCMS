@@ -9,7 +9,7 @@ import sys
 import configparser
 from collections import abc
 
-from .protocal import SetUpPlugin
+from .protocal import PluginRegister
 
 
 class SettingsLoader:
@@ -206,8 +206,8 @@ class SysPathContextManager:
 
     def __enter__(self):
         sys.path.insert(0, self.path)
-        SetUpPlugin.context_theme = self.theme_name
+        PluginRegister.context_theme = self.theme_name
 
     def __exit__(self, *args):
         sys.path.remove(self.path)
-        SetUpPlugin.unset_context_theme()
+        PluginRegister.unset_context_theme()

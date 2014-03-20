@@ -17,7 +17,7 @@ import os
 import unittest
 from geekcms.loadup import (SettingsProcedure, PluginProcedure)
 from geekcms.utils import (ShareData, ProjectSettings, ThemeSettings)
-from geekcms.protocal import (SetUpPlugin, PluginIndex)
+from geekcms.protocal import (PluginRegister, PluginIndex)
 
 
 class ProcedureTest(unittest.TestCase):
@@ -26,7 +26,7 @@ class ProcedureTest(unittest.TestCase):
         ShareData.clear()
         ProjectSettings.clear()
         ThemeSettings.clear()
-        SetUpPlugin.clean_up_registered_plugins()
+        PluginRegister.clean_up_registered_plugins()
 
         self.project_path = os.path.join(
             os.getcwd(),

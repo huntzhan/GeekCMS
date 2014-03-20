@@ -5,7 +5,7 @@ from collections import OrderedDict
 
 from .utils import (SettingsLoader, ProjectSettings, ThemeSettings,
                     ShareData, PathResolver, SysPathContextManager)
-from .protocal import SetUpPlugin
+from .protocal import PluginRegister
 from .sequence_analyze import SequenceParser
 
 
@@ -96,7 +96,7 @@ class PluginProcedure:
     @classmethod
     def verify_plugins(cls, flat_orders):
         for plugin_index in flat_orders:
-            plugin = SetUpPlugin.get_plugin(plugin_index)
+            plugin = PluginRegister.get_plugin(plugin_index)
             if plugin is None:
                 # can not find such plugin
                 print('Can Not Find {}'.format(plugin_index))
