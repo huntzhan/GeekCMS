@@ -9,6 +9,8 @@ import sys
 import configparser
 from collections import abc
 
+from .protocal import SetUpPlugin
+
 
 class SettingsLoader:
 
@@ -198,11 +200,14 @@ class PathResolver:
 
 class SysPathContextManager:
 
-    def __init__(self, path):
-        self.path = path
+    def __init__(self, theme_name, theme_dir):
+        self.theme_name = theme_name
+        self.path = theme_dir
 
     def __enter__(self):
         sys.path.insert(0, self.path)
+        SetUpPlugin.context_theme = self.theme_name
 
     def __exit__(self, *args):
         sys.path.remove(self.path)
+        SetUpPlugin.unset_context_theme()

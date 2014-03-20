@@ -16,24 +16,41 @@ PluginProcedure
 import os
 import unittest
 from geekcms.loadup import (SettingsProcedure, PluginProcedure)
+from geekcms.utils import (ShareData, ProjectSettings, ThemeSettings)
+from geekcms.protocal import (SetUpPlugin, PluginIndex)
 
 
-class _GetCasePath:
+class ProcedureTest(unittest.TestCase):
 
-    def _get_file_path(self, rel_path):
-        test_dir = os.path.join(
+    def setUp(self):
+        ShareData.clear()
+        ProjectSettings.clear()
+        ThemeSettings.clear()
+        SetUpPlugin.clean_up_registered_plugins()
+
+        self.project_path = os.path.join(
             os.getcwd(),
             'tests/cases/project',
         )
 
-        path = os.path.join(
-            test_dir,
-            rel_path,
+    def test_settings_run(self):
+        SettingsProcedure.run(self.project_path)
+
+        self.assertSetEqual(
+            set(ProjectSettings.get_registered_theme_name()),
+            set(['test_theme1', 'test_theme2']),
         )
-        return path
+        self.assertSetEqual(
+            set(ThemeSettings._vars),
+            set(['test_theme1', 'test_theme2']),
+        )
 
-class SettingsProcedureTest(unittest.TestCase, _GetCasePath):
+    def test_plugin_run(self):
+        SettingsProcedure.run(self.project_path)
+        flat_orders = PluginProcedure.run()
 
-    def test_run(self):
-        project_path = self._get_file_path('')
-        SettingsProcedure.run(project_path)
+        self.assertSetEqual(
+            set(flat_orders),
+            set([PluginIndex('test_theme1', 'a'),
+                 PluginIndex('test_theme2', 'b')]),
+        )

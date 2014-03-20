@@ -45,9 +45,9 @@ class SettingsProcedure:
     def load_themes(cls):
         pr = PathResolver
 
-        themes_path = pr.themes()
-        with SysPathContextManager(themes_path):
-            for theme_name in ProjectSettings.get_registered_theme_name():
+        theme_dir = pr.themes()
+        for theme_name in ProjectSettings.get_registered_theme_name():
+            with SysPathContextManager(theme_name, theme_dir):
                 importlib.import_module(theme_name)
 
     @classmethod
@@ -75,8 +75,8 @@ class PluginProcedure:
                 plain_text = ThemeSettings.get(search_key)
                 if plain_text is None:
                     continue
-                # analyse
-                parser.analyze(plain_text)
+                # analyze
+                parser.analyze(theme_name, plain_text)
 
             if parser.error:
                 parser.report_error()
@@ -87,18 +87,27 @@ class PluginProcedure:
         return error_happend, exec_orders
 
     @classmethod
-    def verify_plugins(cls, exec_orders):
-        for plugin_index in exec_orders.values():
+    def linearize_exec_orders(cls, exec_orders):
+        flat_orders = []
+        for container in exec_orders.values():
+            flat_orders.extend(container)
+        return flat_orders
+
+    @classmethod
+    def verify_plugins(cls, flat_orders):
+        for plugin_index in flat_orders:
             plugin = SetUpPlugin.get_plugin(plugin_index)
             if plugin is None:
                 # can not find such plugin
+                print('Can Not Find {}'.format(plugin_index))
                 return True
         return False
 
     @classmethod
     def run(cls):
         parse_error, exec_orders = cls.get_execution_orders()
-        match_error = cls.verify_plugins(exec_orders)
+        flat_orders = cls.linearize_exec_orders(exec_orders)
+        match_error = cls.verify_plugins(flat_orders)
         if parse_error or match_error:
             raise SyntaxError('Error happended, suspend program.')
-        return exec_orders
+        return flat_orders
