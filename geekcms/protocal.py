@@ -173,6 +173,7 @@ class BaseMessage(_BaseAsset):
 
 
 class PluginController:
+
     """
     Data fields and operations related to plugin 'run' method's customization.
     """
@@ -391,7 +392,6 @@ class BasePlugin(metaclass=PluginRegisterAndRunFilter):
 
     @classmethod
     def get_manager_bind_with_plugin(cls, other_cls):
-        assert issubclass(other_cls, _BaseAsset)
         fixed_manager = other_cls.get_manager_with_fixed_owner(
             getattr(cls, _THEME),
         )
@@ -403,3 +403,23 @@ class BasePlugin(metaclass=PluginRegisterAndRunFilter):
     # Otherwise, use 'accept_parameters' to control parameters.
     def run(self, resources=None, products=None, messages=None):
         raise Exception('In BasePlugin.')
+
+
+class BaseExtendedProcedure(metaclass=PluginRegister):
+
+    """
+    1. call get_command_and_explanation(self), in order to construct main doc.
+    2. when user enter 'geekcms <command> [args...]', GeekCMS would call
+    get_doc(self) to construct an new instance of docopt, such instance would
+    be passed to run(self, args).
+    """
+
+    def get_command_and_explanation(self):
+        # return (<command>, explanation).
+        raise Exception('In BaseExtendedProcedure.')
+
+    def get_doc(self):
+        raise Exception('In BaseExtendedProcedure.')
+
+    def run(self, args):
+        raise Exception('In BaseExtendedProcedure.')
