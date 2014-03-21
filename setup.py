@@ -13,7 +13,7 @@ setup(
     description='',
     # long_description=open('README.rst').read(),
 
-    install_requires=['ply>=3.4'],
+    install_requires=['ply>=3.4', 'docopt'],
     packages=['geekcms'],
     # entry_points={
     #     'console_scripts': [

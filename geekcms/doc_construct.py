@@ -13,10 +13,10 @@ Avaliable Commands:
 
 _DOC_TEMPLATE_NOT_IN_PROJECT = """
 Usage:
-    geekcms startproject -t|--template TEMPLATE_NAME
+    geekcms startproject -t <template_name>
 
 Options:
-    -t TEMPLATE_NAME --template=TEMPLATE_NAME
+    -t <template_name> --template=<template_name>
 """
 
 _NEWLINE = os.linesep
