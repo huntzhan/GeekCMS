@@ -15,11 +15,11 @@ setup(
 
     install_requires=['ply>=3.4', 'docopt'],
     packages=['geekcms'],
-    # entry_points={
-    #     'console_scripts': [
-    #         'mgd = mgd.interface:main',
-    #     ],
-    # },
+    entry_points={
+        'console_scripts': [
+            'geekcms = geekcms.interface:main',
+        ],
+    },
     test_suite='tests.load_tests',
     classifiers=[
         'Development Status :: 3 - Alpha',

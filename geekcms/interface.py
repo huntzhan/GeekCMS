@@ -19,6 +19,7 @@ def _get_args(doc, options_first=False):
     )
     return args
 
+
 def _not_in_project():
     doc = DocConstructor.get_doc_not_in_project()
     args = _get_args(doc)
@@ -77,9 +78,9 @@ def _in_project():
     return command
 
 
-def main(project_path):
+def main():
     # set cwd to as project path.
-    PathResolver.set_project_path(project_path)
+    PathResolver.set_project_path(os.getcwd())
 
     if not check_cwd_is_project():
         _not_in_project()
@@ -88,4 +89,4 @@ def main(project_path):
 
 
 if __name__ == '__main__':
-    main(os.getcwd())
+    main()
