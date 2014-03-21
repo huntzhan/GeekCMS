@@ -134,7 +134,7 @@ def p_error(p):
 
 
 parser = yacc.yacc(
-    # debug=0,
+    debug=0,
     optimize=1,
     outputdir=os.path.dirname(__file__),
 )

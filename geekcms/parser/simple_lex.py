@@ -40,7 +40,7 @@ def t_error(t):
     t.lexer.skip(1)
 
 lexer = lex.lex(
-    # debug=0,
+    debug=0,
     optimize=1,
     reflags=re.ASCII,
     outputdir=os.path.dirname(__file__),
