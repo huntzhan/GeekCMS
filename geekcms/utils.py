@@ -211,3 +211,20 @@ class SysPathContextManager:
     def __exit__(self, *args):
         sys.path.remove(self.path)
         PluginRegister.unset_context_theme()
+
+
+class check_cwd_is_project():
+    ps = PathResolver
+
+    require_exist = [
+        ps.inputs(),
+        ps.outputs(),
+        ps.themes(),
+        ps.states(),
+        ps.project_settings(),
+    ]
+
+    for path in require_exist:
+        if not os.path.exists(path):
+            return False
+        return True

@@ -51,8 +51,10 @@ class SettingsProcedure:
                 importlib.import_module(theme_name)
 
     @classmethod
-    def run(cls, project_path):
-        PathResolver.set_project_path(project_path)
+    def run(cls, project_path=None):
+        # project_path is None means the path has already been set.
+        if project_path:
+            PathResolver.set_project_path(project_path)
         cls._load_settings()
         cls._load_themes()
 
@@ -119,8 +121,8 @@ class PluginProcedure:
     @classmethod
     def run(cls):
         parse_error, exec_orders = cls._get_execution_orders()
-        flat_orders, cli_indices = cls._linearize_exec_orders(exec_orders)
-        match_error = cls._verify_plugins(flat_orders + cli_indices)
+        flat_order, cli_indices = cls._linearize_exec_orders(exec_orders)
+        match_error = cls._verify_plugins(flat_order + cli_indices)
         if parse_error or match_error:
             raise SyntaxError('Error happended, suspend program.')
-        return flat_orders, cli_indices
+        return flat_order, cli_indices
