@@ -1,2 +1,3 @@
 [RegisterPlugin]
 pre_load: a
+cli_extend: test_cli

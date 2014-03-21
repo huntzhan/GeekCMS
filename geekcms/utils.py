@@ -213,7 +213,7 @@ class SysPathContextManager:
         PluginRegister.unset_context_theme()
 
 
-class check_cwd_is_project():
+def check_cwd_is_project():
     ps = PathResolver
 
     require_exist = [
@@ -227,4 +227,4 @@ class check_cwd_is_project():
     for path in require_exist:
         if not os.path.exists(path):
             return False
-        return True
+    return True

@@ -33,7 +33,7 @@ import unittest
 import os
 
 from geekcms.utils import (SettingsLoader, ShareData, ProjectSettings,
-                           PathResolver)
+                           PathResolver, check_cwd_is_project)
 
 
 class _GetCasePath:
@@ -49,6 +49,7 @@ class _GetCasePath:
             rel_path,
         )
         return path
+
 
 class SettingsLoaderTest(unittest.TestCase, _GetCasePath):
 
@@ -176,3 +177,16 @@ class PathResolverTest(unittest.TestCase, _GetCasePath):
             PathResolver.theme_settings('testtheme'),
             self._get_file_path('themes/testtheme/settings'),
         )
+
+    def test_check_cwd_is_project(self):
+        not_project_path = self._get_file_path('')
+        project_path = os.path.join(
+            os.getcwd(),
+            'tests/cases/project',
+        )
+
+        PathResolver.set_project_path(not_project_path)
+        self.assertFalse(check_cwd_is_project())
+
+        PathResolver.set_project_path(project_path)
+        self.assertTrue(check_cwd_is_project())

@@ -54,3 +54,7 @@ class ProcedureTest(unittest.TestCase):
             set([PluginIndex('test_theme1', 'a'),
                  PluginIndex('test_theme2', 'b')]),
         )
+        self.assertSetEqual(
+            set(cli_indices),
+            set([PluginIndex('test_theme1', 'test_cli')]),
+        )
