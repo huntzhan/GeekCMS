@@ -37,15 +37,8 @@ def _get_plugin_instance(plugin_index):
 
 
 def _run_default_procedure(plugin_exec_order):
-    resource_manager = BaseResource.objects
-    product_manager = BaseProduct.objects
-    message_manager = BaseMessage.objects
     for plugin in map(_get_plugin_instance, plugin_exec_order):
-        plugin.run(
-            resource_manager.values(),
-            product_manager.values(),
-            message_manager.values(),
-        )
+        plugin.run()
 
 
 def _run_extended_procedure(command, cli_mapping):

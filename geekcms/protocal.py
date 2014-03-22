@@ -1,4 +1,5 @@
 from collections import UserDict
+from collections import OrderedDict
 from collections import abc
 from functools import partial
 from functools import wraps
@@ -212,14 +213,35 @@ class PluginController:
 
     # Control incoming parameter.
     @classmethod
-    def accept_parameters(cls, *params):
-        if not set(params) <= set(cls.AVALIABLE_PARA_NAMES):
-            raise SyntaxError('Arguments should be any among'
-                              ' [RESOURCES, PRODUCTS, MESSAGES]')
+    def accept_parameters(cls, *params, **typed_params):
 
-        # just add __accept_params__ and __signature__.
+        """
+        1. typed_params is empty and params is not empty.
+        2. params is empty and typed_params is not empty.
+        3. both params and typed_params are not empty.(conflict might occur)
+        """
+
+        # check parameters name.
+        name_set = set(params) | set(typed_params)
+        if not name_set <= set(cls.AVALIABLE_PARA_NAMES):
+            raise SyntaxError(
+                'Arguments should be any among'
+                ' [RESOURCES, PRODUCTS, MESSAGES]'
+            )
+
+        # set up order dict to keep the restriction.
+        customized_params = OrderedDict()
+        # keep the order defined by params
+        for key in params:
+            customized_params[key] = None
+        # set the type of params.
+        for key, val in typed_params.items():
+            if key not in params and params:
+                raise SyntaxError('Parameters Conflicts.')
+            customized_params[key] = val
+
         def decorator(func):
-            setattr(func, cls.ACCEPT_PARAMS_ATTR, params)
+            setattr(func, cls.ACCEPT_PARAMS_ATTR, customized_params)
             return func
         return decorator
 
@@ -351,16 +373,16 @@ class PluginRegisterAndRunFilter(PluginRegister):
 
         # begin decorating
         @wraps(func)
-        def run(self, resources, products, messages):
+        def run(self):
             # contains all assets index by AVALIABLE_PARA_NAMES
             params = {
-                PluginController.RESOURCES: resources,
-                PluginController.PRODUCTS: products,
-                PluginController.MESSAGES: messages,
+                PluginController.RESOURCES: BaseResource,
+                PluginController.PRODUCTS: BaseProduct,
+                PluginController.MESSAGES: BaseMessage,
             }
 
             owners = PluginController.get_owner(func, owner)
-            check_func = PluginController.asset_owner_filter(owners)
+            check_owner_func = PluginController.asset_owner_filter(owners)
 
             # get parameters order defined by accept_parameters
             params_order = PluginController.get_parameters(func)
@@ -377,10 +399,21 @@ class PluginRegisterAndRunFilter(PluginRegister):
                 # exactly the same as the length of params_order
                 PluginController.count_parameters(func, len(params_order))
 
+                # adjust params with user defined types.
+                for key, val in params_order.items():
+                    if val is None:
+                        continue
+                    params[key] = val
+
             # filter assets.
-            iter_params = [filter(check_func, params[name])
-                           for name in params_order]
-            processed_params = [list(iter_param) for iter_param in iter_params]
+            processed_params = []
+            for key in params_order:
+                filtered_items = filter(
+                    check_owner_func,
+                    params[key].objects.values(),
+                )
+                processed_params.append(list(filtered_items))
+
             # here we go.
             return func(self, *processed_params)
         return run
