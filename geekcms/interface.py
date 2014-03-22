@@ -6,6 +6,7 @@ from .utils import (PathResolver, check_cwd_is_project)
 from .doc_construct import DocConstructor
 from .loadup import (SettingsProcedure, PluginProcedure)
 from .protocal import (PluginRegister, BaseResource, BaseProduct, BaseMessage)
+from .download_theme import download_theme
 
 
 __version__ = '0.3'
@@ -23,10 +24,10 @@ def _get_args(doc, options_first=False):
 def _not_in_project():
     doc = DocConstructor.get_doc_not_in_project()
     args = _get_args(doc)
-    template = args['--template']
+    template = args['<template_name>']
     if template:
-        # Implement Later.
-        pass
+        download_theme(template, PathResolver.project_path)
+
     return template
 
 

@@ -2,6 +2,7 @@
 import os
 import sys
 import unittest
+import shutil
 
 from geekcms.interface import (_not_in_project, _in_project)
 from geekcms.utils import (PathResolver, ShareData,
@@ -32,12 +33,16 @@ class TestCLI(unittest.TestCase):
     def test_not_in_project(self):
         not_project_path = self._get_path('tests/cases')
         PathResolver.set_project_path(not_project_path)
+        template = 'simple'
 
-        sys.argv = ['geekcms', 'startproject', '-t', 'test_template']
+        sys.argv = ['geekcms', 'startproject', '-t', template]
 
         self.assertEqual(
             _not_in_project(),
-            'test_template',
+            template,
+        )
+        shutil.rmtree(
+            os.path.join(not_project_path, template),
         )
 
     def test_in_project(self):
