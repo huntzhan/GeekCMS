@@ -223,7 +223,9 @@ class PluginController:
 
         # check parameters name.
         name_set = set(params) | set(typed_params)
-        if not name_set <= set(cls.AVALIABLE_PARA_NAMES):
+        if not name_set:
+            raise SyntaxError('Argument Can Not Be Empty.')
+        if not (name_set <= set(cls.AVALIABLE_PARA_NAMES)):
             raise SyntaxError(
                 'Arguments should be any among'
                 ' [RESOURCES, PRODUCTS, MESSAGES]'
@@ -235,10 +237,13 @@ class PluginController:
         for key in params:
             customized_params[key] = None
         # set the type of params.
-        for key, val in typed_params.items():
-            if key not in params and params:
+        for key in cls.AVALIABLE_PARA_NAMES:
+            if key not in typed_params:
+                continue
+            elif key not in params and params:
                 raise SyntaxError('Parameters Conflicts.')
-            customized_params[key] = val
+            else:
+                customized_params[key] = typed_params[key]
 
         def decorator(func):
             setattr(func, cls.ACCEPT_PARAMS_ATTR, customized_params)
