@@ -35,7 +35,7 @@ class TestCLI(unittest.TestCase):
         PathResolver.set_project_path(not_project_path)
         template = 'simple'
 
-        sys.argv = ['geekcms', 'startproject', '-t', template]
+        sys.argv = ['geekcms', 'startproject', template]
 
         self.assertEqual(
             _not_in_project(),

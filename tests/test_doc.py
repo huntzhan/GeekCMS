@@ -10,11 +10,11 @@ class DocConstructorTest(unittest.TestCase):
 
     def test_doc_not_in_project(self):
         doc = DocConstructor.get_doc_not_in_project()
-        argv = ['startproject', '-t', 'default']
+        argv = ['startproject', 'default']
         args = docopt(doc, argv)
 
         self.assertEqual(
-            args['--template'],
+            args['<template_name>'],
             'default',
         )
 

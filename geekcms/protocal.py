@@ -61,11 +61,7 @@ class Manager(UserDict):
             self[key] = []
         return super().__getitem__(key)
 
-    def create(self, owner, *args, **kwargs):
-        item = self._target_cls(owner, *args, **kwargs)
-        self[owner].append(item)
-        return item
-
+    # operations covers all types.
     def add(self, item):
         self[item.owner].append(item)
 
@@ -74,27 +70,47 @@ class Manager(UserDict):
         if not self[item.owner]:
             del self[item.owner]
 
+    def keys(self):
+        return list(self)
+
+    # operations related to _target_cls.
+    def _filter_isinstance(self, items):
+        for item in items[:]:
+            if not isinstance(item, self._target_cls):
+                items.remove(item)
+        return items
+
+    def create(self, owner, *args, **kwargs):
+        item = self._target_cls(owner, *args, **kwargs)
+        self[owner].append(item)
+        return item
+
     def filter(self, owner):
         if isinstance(owner, str):
-            return self[owner]
+            result = self[owner]
         elif isinstance(owner, abc.Iterable):
             result = []
             owners = owner
             for owner in owners:
                 result.extend(self[owner])
-            return reuslt
-
-    def keys(self):
-        return list(self)
+        return self._filter_isinstance(result)
 
     def values(self):
         result = []
         for items in super().values():
             result.extend(items)
-        return result
+        return self._filter_isinstance(result)
 
     def clear(self):
-        self.data.clear()
+        owners_to_be_remove = []
+        for owner, items in self.items():
+            for item in items[:]:
+                if isinstance(item, self._target_cls):
+                    items.remove(item)
+            if not items:
+                owners_to_be_remove.append(owner)
+        for owner in owners_to_be_remove:
+            del self[owner]
 
 
 class ManagerProxyWithOwner:
