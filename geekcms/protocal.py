@@ -82,7 +82,8 @@ class Manager(UserDict):
         return items
 
     def create(self, owner, *args, **kwargs):
-        item = self._target_cls(owner, *args, **kwargs)
+        item = self._target_cls(*args, **kwargs)
+        item.set_owner(owner)
         self[owner].append(item)
         return item
 
@@ -160,8 +161,8 @@ class SetUpObjectManager(type):
 
 class _BaseAsset(metaclass=SetUpObjectManager):
 
-    def __init__(self, owner, *args, **kwargs):
-        text = 'In Base Class: owner: {}, *args: {}; **kwargs: {}'
+    def __init__(self, *args, **kwargs):
+        text = 'In Base Class: *args: {}; **kwargs: {}'
         raise Exception(
             text.format(owner, args, kwargs),
         )

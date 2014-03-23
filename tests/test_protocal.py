@@ -105,8 +105,8 @@ class ManagerRegisterTest(unittest.TestCase):
         # create test class
         class TestAsset(protocal.BaseResource):
 
-            def __init__(self, owner):
-                self.set_owner(owner)
+            def __init__(self):
+                pass
 
         self.TestAsset = TestAsset
 
@@ -123,8 +123,8 @@ class ManagerRegisterTest(unittest.TestCase):
         # TestAsset and AnotherTestAsset both derived from BaseResource.
         class AnotherTestAsset(protocal.BaseResource):
 
-            def __init__(self, owner):
-                self.set_owner(owner)
+            def __init__(self):
+                pass
 
         first_item = self.TestAsset.objects.create(self.owner)
         second_item = AnotherTestAsset.objects.create(self.owner)
@@ -143,10 +143,10 @@ class ManagerRegisterTest(unittest.TestCase):
 class ManagerUsageTest(unittest.TestCase):
 
     def setUp(self):
-        class TestClass:
+        class TestClass(protocal.BaseResource):
 
-            def __init__(self, owner):
-                self.owner = owner
+            def __init__(self):
+                pass
 
         self.TestClass = TestClass
         self.owner = 'testowner'
@@ -158,7 +158,8 @@ class ManagerUsageTest(unittest.TestCase):
         self.assertIsInstance(item, self.TestClass)
 
     def test_add_remove(self):
-        item = self.TestClass(self.owner)
+        item = self.TestClass()
+        item.set_owner(self.owner)
         self.assertEqual(self.manager, defaultdict(list))
 
         self.manager.add(item)
@@ -191,10 +192,10 @@ class ManagerUsageTest(unittest.TestCase):
 class ManagerProxyWithOwnerTest(unittest.TestCase):
 
     def setUp(self):
-        class TestClass:
+        class TestClass(protocal.BaseResource):
 
-            def __init__(self, owner):
-                self.owner = owner
+            def __init__(self):
+                pass
 
         self.TestClass = TestClass
         self.owner = 'testowner'
@@ -301,18 +302,18 @@ class PluginTest(unittest.TestCase):
 
         class TestResource(protocal.BaseResource):
 
-            def __init__(self, owner):
-                self.set_owner(owner)
+            def __init__(self):
+                pass
 
         class TestProduct(protocal.BaseProduct):
 
-            def __init__(self, owner):
-                self.set_owner(owner)
+            def __init__(self):
+                pass
 
         class TestMessage(protocal.BaseMessage):
 
-            def __init__(self, owner):
-                self.set_owner(owner)
+            def __init__(self):
+                pass
 
         theme_zero = 'zero'
         theme_one = 'one'
@@ -364,13 +365,11 @@ class PluginTest(unittest.TestCase):
 
         class TestMessageBase(protocal.BaseMessage):
 
-            def __init__(self, owner):
-                self.set_owner(owner)
+            def __init__(self):
+                pass
 
         class TestMessageDerived(TestMessageBase):
-
-            def __init__(self, owner):
-                self.set_owner(owner)
+            pass
 
         TestMessageBase.objects.create(self.theme_name)
         TestMessageDerived.objects.create(self.theme_name)
@@ -407,8 +406,8 @@ class PluginTest(unittest.TestCase):
 
         class TestResource(protocal.BaseResource):
 
-            def __init__(self, owner):
-                self.set_owner(owner)
+            def __init__(self):
+                pass
 
         target_theme_name = 'a'
         noice_theme_name = 'b'
