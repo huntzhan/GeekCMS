@@ -81,7 +81,8 @@ class Manager(UserDict):
                 items.remove(item)
         return items
 
-    def create(self, owner, *args, **kwargs):
+    # Be Careful! owner is keyword-only parameter.
+    def create(self, *args, owner, **kwargs):
         item = self._target_cls(*args, **kwargs)
         item.set_owner(owner)
         self[owner].append(item)
@@ -361,8 +362,13 @@ class PluginRegister(type):
     @classmethod
     def _register_plugin(cls, plugin_cls, namespace):
 
-        plugin_name = cls._get_plugin_name(plugin_cls, namespace)
+        # get attributes.
         theme_name = cls._get_theme_name(namespace)
+        plugin_name = cls._get_plugin_name(plugin_cls, namespace)
+
+        # set attrbutes of theme and plugin to class.
+        setattr(plugin_cls, cls.THEME, theme_name)
+        setattr(plugin_cls, cls.PLUGIN, plugin_name)
 
         # register plugin
         plugin_index = PluginIndex(theme_name, plugin_name)
@@ -463,7 +469,7 @@ class BasePlugin(metaclass=PluginRegisterAndRunFilter):
     @classmethod
     def get_manager_bind_with_plugin(cls, other_cls):
         fixed_manager = other_cls.get_manager_with_fixed_owner(
-            getattr(cls, _THEME),
+            getattr(cls, PluginRegister.THEME),
         )
         return fixed_manager
 

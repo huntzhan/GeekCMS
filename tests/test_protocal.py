@@ -126,8 +126,8 @@ class ManagerRegisterTest(unittest.TestCase):
             def __init__(self):
                 pass
 
-        first_item = self.TestAsset.objects.create(self.owner)
-        second_item = AnotherTestAsset.objects.create(self.owner)
+        first_item = self.TestAsset.objects.create(owner=self.owner)
+        second_item = AnotherTestAsset.objects.create(owner=self.owner)
 
         # get all assets.
         self.assertSetEqual(
@@ -153,7 +153,7 @@ class ManagerUsageTest(unittest.TestCase):
         self.manager = protocal.Manager(TestClass)
 
     def test_create(self):
-        item = self.manager.create(self.owner)
+        item = self.manager.create(owner=self.owner)
         self.assertEqual(item.owner, self.owner)
         self.assertIsInstance(item, self.TestClass)
 
@@ -174,8 +174,8 @@ class ManagerUsageTest(unittest.TestCase):
     def test_filter_keys_values(self):
         owner_1 = 'owner_1'
         owner_2 = 'owner_2'
-        item_1 = self.manager.create(owner_1)
-        item_2 = self.manager.create(owner_2)
+        item_1 = self.manager.create(owner=owner_1)
+        item_2 = self.manager.create(owner=owner_2)
 
         self.assertListEqual(self.manager.filter(owner_1), [item_1])
         self.assertListEqual(self.manager.filter(owner_2), [item_2])
@@ -320,9 +320,9 @@ class PluginTest(unittest.TestCase):
         theme_three = 'three'
 
         for theme_name in [theme_zero, theme_one, theme_three]:
-            TestResource.objects.create(theme_name)
-            TestProduct.objects.create(theme_name)
-            TestMessage.objects.create(theme_name)
+            TestResource.objects.create(owner=theme_name)
+            TestProduct.objects.create(owner=theme_name)
+            TestMessage.objects.create(owner=theme_name)
 
         test_self = self
 
@@ -371,8 +371,8 @@ class PluginTest(unittest.TestCase):
         class TestMessageDerived(TestMessageBase):
             pass
 
-        TestMessageBase.objects.create(self.theme_name)
-        TestMessageDerived.objects.create(self.theme_name)
+        TestMessageBase.objects.create(owner=self.theme_name)
+        TestMessageDerived.objects.create(owner=self.theme_name)
 
         class TestPluginBase(protocal.BasePlugin):
 
@@ -423,8 +423,8 @@ class PluginTest(unittest.TestCase):
         target_theme_name = 'a'
         noice_theme_name = 'b'
 
-        TestResource.objects.create(target_theme_name)
-        TestResource.objects.create(noice_theme_name)
+        TestResource.objects.create(owner=target_theme_name)
+        TestResource.objects.create(owner=noice_theme_name)
 
         class TestPlugin(protocal.BasePlugin):
             theme = noice_theme_name
