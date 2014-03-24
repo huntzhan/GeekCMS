@@ -214,13 +214,28 @@ class PluginController:
 
     # Control incoming parameter.
     @classmethod
-    def accept_parameters(cls, *params, **typed_params):
+    def accept_parameters(cls, *fixed_params, **typed_params):
 
         """
         1. typed_params is empty and params is not empty.
         2. params is empty and typed_params is not empty.
         3. both params and typed_params are not empty.(conflict might occur)
+        4. params might cantains items of str or tuple.
         """
+
+        # preprocess of params and typed_params.
+        params = []
+        for index, item in enumerate(fixed_params[:]):
+            if isinstance(item, str):
+                params.append(item)
+            elif isinstance(item, (list, tuple)) and len(item) == 2:
+                para_name, para_type = item
+                # add name to params.
+                params.append(para_name)
+                # update restriction of types.
+                typed_params.update({para_name: para_type})
+            else:
+                raise SyntaxError('Error In *params.')
 
         # check parameters name.
         name_set = set(params) | set(typed_params)

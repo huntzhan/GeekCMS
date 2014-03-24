@@ -394,10 +394,21 @@ class PluginTest(unittest.TestCase):
                 test_self.assertEqual(len(messages), 1)
                 test_self.assertIsInstance(messages[0], TestMessageDerived)
 
+        class TestPluginAnotherDerived(protocal.BasePlugin):
+
+            @pcl.accept_parameters(
+                (pcl.MESSAGES, TestMessageDerived)
+            )
+            def run(self, messages):
+                test_self.assertEqual(len(messages), 1)
+                test_self.assertIsInstance(messages[0], TestMessageDerived)
+
         plugin_base = TestPluginBase()
         plugin_derived = TestPluginDerived()
+        plugin_another_derived = TestPluginDerived()
         plugin_base.run()
         plugin_derived.run()
+        plugin_another_derived.run()
 
     def test_accept_owners(self):
         protocal.PluginRegister.context_theme = self.theme_name
