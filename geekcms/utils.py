@@ -8,6 +8,7 @@ import re
 import sys
 import configparser
 from collections import abc
+from functools import wraps
 
 from .protocal import PluginRegister
 
@@ -148,6 +149,24 @@ class PathResolver:
 
     project_path = None
 
+    def _let_dir_exist(func):
+        @wraps(func)
+        def func_with_option(*args, ensure_exist=False, **kwargs):
+            path = func(*args, **kwargs)
+            if ensure_exist and not os.path.exists(path):
+                os.makedirs(path)
+            return path
+        return func_with_option
+
+    def _let_file_exist(func):
+        @wraps(func)
+        def func_with_option(*args, ensure_exist=False, **kwargs):
+            path = func(*args, **kwargs)
+            if ensure_exist and not os.path.exists(path):
+                open(path, 'a').close()
+            return path
+        return func_with_option
+
     @classmethod
     def set_project_path(cls, path):
         cls.project_path = path
@@ -157,22 +176,27 @@ class PathResolver:
         return os.path.join(cls.project_path, path)
 
     @classmethod
+    @_let_dir_exist
     def inputs(cls):
         return cls._join_project(cls.INPUTS)
 
     @classmethod
+    @_let_dir_exist
     def outputs(cls):
         return cls._join_project(cls.OUTPUTS)
 
     @classmethod
+    @_let_dir_exist
     def themes(cls):
         return cls._join_project(cls.THEMES)
 
     @classmethod
+    @_let_dir_exist
     def states(cls):
         return cls._join_project(cls.STATES)
 
     @classmethod
+    @_let_dir_exist
     def theme_state(cls, theme_name):
         return os.path.join(
             cls.states(),
@@ -180,6 +204,7 @@ class PathResolver:
         )
 
     @classmethod
+    @_let_dir_exist
     def theme_dir(cls, theme_name):
         return os.path.join(
             cls.themes(),
@@ -187,10 +212,12 @@ class PathResolver:
         )
 
     @classmethod
+    @_let_file_exist
     def project_settings(cls):
         return cls._join_project(cls.PROJECT_SETTINGS)
 
     @classmethod
+    @_let_file_exist
     def theme_settings(cls, theme_name):
         return os.path.join(
             cls.theme_dir(theme_name),
@@ -213,18 +240,30 @@ class SysPathContextManager:
         PluginRegister.unset_context_theme()
 
 
-def check_cwd_is_project():
-    ps = PathResolver
+class PathResolverContextManager:
 
-    require_exist = [
-        ps.inputs(),
-        ps.outputs(),
-        ps.themes(),
-        ps.states(),
-        ps.project_settings(),
+    def __init__(self, path=None):
+        self.path = path
+
+    def __enter__(self):
+        self.bak_path = PathResolver.project_path
+        PathResolver.set_project_path(self.path)
+
+    def __exit__(self, *args):
+        PathResolver.set_project_path(self.bak_path)
+
+
+def check_cwd_is_project():
+
+    require_exist_path = [
+        PathResolver.inputs(),
+        PathResolver.outputs(),
+        PathResolver.themes(),
+        PathResolver.states(),
+        PathResolver.project_settings(),
     ]
 
-    for path in require_exist:
-        if not os.path.exists(path):
+    for requied_path in require_exist_path:
+        if not os.path.exists(requied_path):
             return False
     return True
