@@ -7,7 +7,7 @@ import shutil
 from geekcms.interface import (_not_in_project, _in_project)
 from geekcms.utils import (PathResolver, ShareData,
                            ThemeSettings, ProjectSettings)
-from geekcms.protocal import PluginRegister
+from geekcms.protocol import PluginRegister
 
 
 class TestCLI(unittest.TestCase):

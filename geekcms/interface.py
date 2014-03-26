@@ -5,7 +5,7 @@ from docopt import docopt
 from .utils import (PathResolver, check_cwd_is_project)
 from .doc_construct import DocConstructor
 from .loadup import (SettingsProcedure, PluginProcedure)
-from .protocal import (PluginRegister, BaseResource, BaseProduct, BaseMessage)
+from .protocol import (PluginRegister, BaseResource, BaseProduct, BaseMessage)
 from .download_theme import download_theme
 
 

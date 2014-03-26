@@ -1,7 +1,7 @@
-from geekcms import protocal
+from geekcms import protocol
 
 
-class TestPlugin(protocal.BasePlugin):
+class TestPlugin(protocol.BasePlugin):
 
     plugin = 'b'
 

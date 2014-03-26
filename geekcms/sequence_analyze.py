@@ -114,7 +114,7 @@ from .parser.simple_yacc import parser
 from .parser.utils import ErrorCollector
 from .parser.utils import PluginExpr
 from .parser.utils import PluginRel
-from .protocal import PluginIndex
+from .protocol import PluginIndex
 
 
 _SPECIAL_DEGREE = -1

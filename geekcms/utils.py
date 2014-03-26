@@ -10,7 +10,7 @@ import configparser
 from collections import abc
 from functools import wraps
 
-from .protocal import PluginRegister
+from .protocol import PluginRegister
 
 
 class SettingsLoader:

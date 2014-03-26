@@ -1,7 +1,7 @@
-from geekcms import protocal
+from geekcms import protocol
 
 
-class TestPlugin(protocal.BasePlugin):
+class TestPlugin(protocol.BasePlugin):
 
     plugin = 'a'
 
@@ -14,7 +14,7 @@ Usage:
 """
 
 
-class TestCLI(protocal.BaseExtendedProcedure):
+class TestCLI(protocol.BaseExtendedProcedure):
 
     plugin = 'test_cli'
 

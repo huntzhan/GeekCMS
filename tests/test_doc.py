@@ -3,7 +3,7 @@ import unittest
 from docopt import docopt
 
 from geekcms.doc_construct import DocConstructor
-from geekcms.protocal import BaseExtendedProcedure
+from geekcms.protocol import BaseExtendedProcedure
 
 
 class DocConstructorTest(unittest.TestCase):

@@ -5,7 +5,7 @@ from collections import OrderedDict
 
 from .utils import (SettingsLoader, ProjectSettings, ThemeSettings,
                     ShareData, PathResolver, SysPathContextManager)
-from .protocal import PluginRegister
+from .protocol import PluginRegister
 from .sequence_analyze import SequenceParser
 
 

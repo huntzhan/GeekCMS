@@ -50,14 +50,14 @@ BasePlugin, PluginRegister, PluginController:
 
 import unittest
 from collections import defaultdict
-from geekcms import protocal
+from geekcms import protocol
 
 
 class PluginIndexTest(unittest.TestCase):
 
     def test_unique(self):
-        item_1 = protocal.PluginIndex('a', 'b')
-        item_2 = protocal.PluginIndex('a', 'c')
+        item_1 = protocol.PluginIndex('a', 'b')
+        item_2 = protocol.PluginIndex('a', 'c')
         self.assertEqual(item_1, 'a.b')
         self.assertNotEqual(item_1, item_2)
 
@@ -65,7 +65,7 @@ class PluginIndexTest(unittest.TestCase):
 class AssetTest(unittest.TestCase):
 
     def setUp(self):
-        class TestClass(protocal.BaseResource):
+        class TestClass(protocol.BaseResource):
 
             def __init__(self, owner):
                 self.set_owner(owner)
@@ -80,7 +80,7 @@ class AssetTest(unittest.TestCase):
         self.assertEqual(item.owner, owner)
 
         self.assertIsInstance(item, self.TestClass)
-        self.assertNotIsInstance(item, protocal.BaseProduct)
+        self.assertNotIsInstance(item, protocol.BaseProduct)
 
     def test_access_manager_from_instance(self):
         with self.assertRaises(Exception):
@@ -100,10 +100,10 @@ class AssetTest(unittest.TestCase):
 class ManagerRegisterTest(unittest.TestCase):
 
     def setUp(self):
-        protocal.BaseResource.objects.clear()
+        protocol.BaseResource.objects.clear()
 
         # create test class
-        class TestAsset(protocal.BaseResource):
+        class TestAsset(protocol.BaseResource):
 
             def __init__(self):
                 pass
@@ -121,7 +121,7 @@ class ManagerRegisterTest(unittest.TestCase):
 
     def test_trace_multi_classes(self):
         # TestAsset and AnotherTestAsset both derived from BaseResource.
-        class AnotherTestAsset(protocal.BaseResource):
+        class AnotherTestAsset(protocol.BaseResource):
 
             def __init__(self):
                 pass
@@ -132,25 +132,25 @@ class ManagerRegisterTest(unittest.TestCase):
         # get all assets.
         self.assertSetEqual(
             set((first_item, second_item)),
-            set(protocal.BaseResource.objects.values()),
+            set(protocol.BaseResource.objects.values()),
         )
 
         # exclusive share field.
-        self.assertFalse(protocal.BaseProduct.objects.values())
-        self.assertFalse(protocal.BaseMessage.objects.values())
+        self.assertFalse(protocol.BaseProduct.objects.values())
+        self.assertFalse(protocol.BaseMessage.objects.values())
 
 
 class ManagerUsageTest(unittest.TestCase):
 
     def setUp(self):
-        class TestClass(protocal.BaseResource):
+        class TestClass(protocol.BaseResource):
 
             def __init__(self):
                 pass
 
         self.TestClass = TestClass
         self.owner = 'testowner'
-        self.manager = protocal.Manager(TestClass)
+        self.manager = protocol.Manager(TestClass)
 
     def test_create(self):
         item = self.manager.create(owner=self.owner)
@@ -192,17 +192,17 @@ class ManagerUsageTest(unittest.TestCase):
 class ManagerProxyWithOwnerTest(unittest.TestCase):
 
     def setUp(self):
-        class TestClass(protocal.BaseResource):
+        class TestClass(protocol.BaseResource):
 
             def __init__(self):
                 pass
 
         self.TestClass = TestClass
         self.owner = 'testowner'
-        self.manager = protocal.Manager(TestClass)
+        self.manager = protocol.Manager(TestClass)
 
     def test_proxy(self):
-        proxy = protocal.ManagerProxyWithOwner(self.owner, self.manager)
+        proxy = protocol.ManagerProxyWithOwner(self.owner, self.manager)
 
         item = proxy.create()
         self.assertDictEqual(
@@ -223,17 +223,17 @@ class PluginTest(unittest.TestCase):
 
     def setUp(self):
         # clean up
-        protocal.BaseResource.objects.clear()
-        protocal.BaseProduct.objects.clear()
-        protocal.BaseMessage.objects.clear()
-        protocal.PluginRegister.clean_up_registered_plugins()
-        protocal.PluginRegister.unset_context_theme()
+        protocol.BaseResource.objects.clear()
+        protocol.BaseProduct.objects.clear()
+        protocol.BaseMessage.objects.clear()
+        protocol.PluginRegister.clean_up_registered_plugins()
+        protocol.PluginRegister.unset_context_theme()
 
         self.theme_name = 'testtheme'
         self.plugin_name = 'testplugin'
 
     def test_register(self):
-        class TestPlugin(protocal.BasePlugin):
+        class TestPlugin(protocol.BasePlugin):
             theme = self.theme_name
             plugin = self.plugin_name
 
@@ -241,24 +241,24 @@ class PluginTest(unittest.TestCase):
                 pass
 
         self.assertDictEqual(
-            protocal.PluginRegister.get_registered_plugins(),
-            {protocal.PluginIndex(self.theme_name, self.plugin_name):
+            protocol.PluginRegister.get_registered_plugins(),
+            {protocol.PluginIndex(self.theme_name, self.plugin_name):
              TestPlugin},
         )
 
     def test_theme_name(self):
 
-        protocal.PluginRegister.context_theme = self.theme_name
+        protocol.PluginRegister.context_theme = self.theme_name
         temp_theme_name = 'theme_name_for_test'
 
-        class PluginWithThemeName(protocal.BasePlugin):
+        class PluginWithThemeName(protocol.BasePlugin):
             theme = temp_theme_name
             plugin = self.plugin_name
 
             def run(self):
                 pass
 
-        class PluginWithoutThemeName(protocal.BasePlugin):
+        class PluginWithoutThemeName(protocol.BasePlugin):
             plugin = self.plugin_name
 
             def run(self):
@@ -266,51 +266,51 @@ class PluginTest(unittest.TestCase):
 
         self.assertSetEqual(
             # get theme_names
-            set(protocal.PluginRegister.get_registered_plugins()),
+            set(protocol.PluginRegister.get_registered_plugins()),
             set((
-                protocal.PluginIndex(temp_theme_name, self.plugin_name),
-                protocal.PluginIndex(self.theme_name, self.plugin_name),
+                protocol.PluginIndex(temp_theme_name, self.plugin_name),
+                protocol.PluginIndex(self.theme_name, self.plugin_name),
                 )),
         )
 
     def test_plugin_name(self):
 
-        protocal.PluginRegister.context_theme = self.theme_name
+        protocol.PluginRegister.context_theme = self.theme_name
 
-        class PluginWithPluginName(protocal.BasePlugin):
+        class PluginWithPluginName(protocol.BasePlugin):
             plugin = self.plugin_name
 
             def run(self):
                 pass
 
-        class PluginWithoutPluginName(protocal.BasePlugin):
+        class PluginWithoutPluginName(protocol.BasePlugin):
 
             def run(self):
                 pass
 
         self.assertSetEqual(
             # get theme_names
-            set(protocal.PluginRegister.get_registered_plugins()),
+            set(protocol.PluginRegister.get_registered_plugins()),
             set((
-                protocal.PluginIndex(self.theme_name, self.plugin_name),
-                protocal.PluginIndex(self.theme_name,
+                protocol.PluginIndex(self.theme_name, self.plugin_name),
+                protocol.PluginIndex(self.theme_name,
                                      'PluginWithoutPluginName'),
                 )),
         )
 
     def test_default_params(self):
 
-        class TestResource(protocal.BaseResource):
+        class TestResource(protocol.BaseResource):
 
             def __init__(self):
                 pass
 
-        class TestProduct(protocal.BaseProduct):
+        class TestProduct(protocol.BaseProduct):
 
             def __init__(self):
                 pass
 
-        class TestMessage(protocal.BaseMessage):
+        class TestMessage(protocol.BaseMessage):
 
             def __init__(self):
                 pass
@@ -326,20 +326,20 @@ class PluginTest(unittest.TestCase):
 
         test_self = self
 
-        class PluginZeroParam(protocal.BasePlugin):
+        class PluginZeroParam(protocol.BasePlugin):
             theme = theme_zero
 
             def run(self):
                 pass
 
-        class PluginOneParam(protocal.BasePlugin):
+        class PluginOneParam(protocol.BasePlugin):
             theme = theme_one
 
             def run(self, resources):
                 test_self.assertEqual(len(resources), 1)
                 test_self.assertIsInstance(resources[0], TestResource)
 
-        class PluginThreeParam(protocal.BasePlugin):
+        class PluginThreeParam(protocol.BasePlugin):
             theme = theme_three
 
             def run(self, resources, products, messages):
@@ -352,18 +352,18 @@ class PluginTest(unittest.TestCase):
                 test_self.assertIsInstance(messages[0], TestMessage)
 
         plugin_mapping =\
-            protocal.PluginRegister.get_registered_plugins().items()
+            protocol.PluginRegister.get_registered_plugins().items()
 
         for _, plugin_cls in plugin_mapping:
             plugin = plugin_cls()
             plugin.run()
 
     def test_accept_parameters(self):
-        protocal.PluginRegister.context_theme = self.theme_name
-        pcl = protocal.PluginController
+        protocol.PluginRegister.context_theme = self.theme_name
+        pcl = protocol.PluginController
         test_self = self
 
-        class TestMessageBase(protocal.BaseMessage):
+        class TestMessageBase(protocol.BaseMessage):
 
             def __init__(self):
                 pass
@@ -374,7 +374,7 @@ class PluginTest(unittest.TestCase):
         TestMessageBase.objects.create(owner=self.theme_name)
         TestMessageDerived.objects.create(owner=self.theme_name)
 
-        class TestPluginBase(protocal.BasePlugin):
+        class TestPluginBase(protocol.BasePlugin):
 
             @pcl.accept_parameters(pcl.MESSAGES)
             def run(self, messages):
@@ -382,7 +382,7 @@ class PluginTest(unittest.TestCase):
                 test_self.assertIsInstance(messages[0], TestMessageBase)
                 test_self.assertIsInstance(messages[1], TestMessageBase)
 
-        class TestPluginDerived(protocal.BasePlugin):
+        class TestPluginDerived(protocol.BasePlugin):
 
             TYPED_PARAMS = {pcl.MESSAGES: TestMessageDerived}
 
@@ -394,7 +394,7 @@ class PluginTest(unittest.TestCase):
                 test_self.assertEqual(len(messages), 1)
                 test_self.assertIsInstance(messages[0], TestMessageDerived)
 
-        class TestPluginAnotherDerived(protocal.BasePlugin):
+        class TestPluginAnotherDerived(protocol.BasePlugin):
 
             @pcl.accept_parameters(
                 (pcl.MESSAGES, TestMessageDerived)
@@ -411,11 +411,11 @@ class PluginTest(unittest.TestCase):
         plugin_another_derived.run()
 
     def test_accept_owners(self):
-        protocal.PluginRegister.context_theme = self.theme_name
-        pcl = protocal.PluginController
+        protocol.PluginRegister.context_theme = self.theme_name
+        pcl = protocol.PluginController
         test_self = self
 
-        class TestResource(protocal.BaseResource):
+        class TestResource(protocol.BaseResource):
 
             def __init__(self):
                 pass
@@ -426,7 +426,7 @@ class PluginTest(unittest.TestCase):
         TestResource.objects.create(owner=target_theme_name)
         TestResource.objects.create(owner=noice_theme_name)
 
-        class TestPlugin(protocal.BasePlugin):
+        class TestPlugin(protocol.BasePlugin):
             theme = noice_theme_name
 
             @pcl.accept_owners(target_theme_name)

@@ -6,7 +6,7 @@ from collections import defaultdict
 
 from geekcms.parser.simple_lex import lexer
 from geekcms.parser.simple_yacc import parser
-from geekcms.protocal import PluginIndex
+from geekcms.protocol import PluginIndex
 from geekcms.sequence_analyze import SequenceParser
 
 

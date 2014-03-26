@@ -17,7 +17,7 @@ import os
 import unittest
 from geekcms.loadup import (SettingsProcedure, PluginProcedure)
 from geekcms.utils import (ShareData, ProjectSettings, ThemeSettings)
-from geekcms.protocal import (PluginRegister, PluginIndex)
+from geekcms.protocol import (PluginRegister, PluginIndex)
 
 
 class ProcedureTest(unittest.TestCase):
