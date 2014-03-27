@@ -16,7 +16,7 @@ setup(
 
     install_requires=['ply>=3.4', 'docopt'],
 
-    packages=find_packages(),
+    packages=['geekcms', 'geekcms.parser'],
     entry_points={
         'console_scripts': [
             'geekcms = geekcms.interface:main',
