@@ -9,7 +9,7 @@ setup(
     author='Zhan Haoxun',
     author_email='programmer.zhx@gmail.com',
 
-    url='',
+    url='https://github.com/haoxun/GeekCMS',
     license='MIT',
     description='a lightweight framework for static site development',
     long_description=open('README.rst').read(),
