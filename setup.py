@@ -12,7 +12,7 @@ setup(
     url='',
     license='MIT',
     description='',
-    # long_description=open('README.rst').read(),
+    long_description=open('README.rst').read(),
 
     install_requires=['ply>=3.4', 'docopt'],
     packages=find_packages('geekcms'),
