@@ -7,7 +7,7 @@ Usage:
     geekcms <command> [<args>...]
 
 Avaliable Commands:
-    run  default procedure.
+    run  Default procedure.
 {0}
 """
 
