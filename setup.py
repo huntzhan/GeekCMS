@@ -11,11 +11,12 @@ setup(
 
     url='https://github.com/haoxun/GeekCMS',
     license='MIT',
-    description='a lightweight framework for static site development',
+    description='a lightweight framework for static site development.',
     long_description=open('README.rst').read(),
 
     install_requires=['ply>=3.4', 'docopt'],
-    packages=find_packages('geekcms'),
+
+    packages=find_packages(),
     entry_points={
         'console_scripts': [
             'geekcms = geekcms.interface:main',
