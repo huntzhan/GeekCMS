@@ -25,7 +25,7 @@ setup(
     test_suite='tests.load_tests',
     classifiers=[
         'Development Status :: 3 - Alpha',
-        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
         'Operating System :: OS Independent',
         'License :: OSI Approved :: MIT License',
     ],
