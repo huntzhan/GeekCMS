@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 
 from setuptools import setup, find_packages
-from geekcms.interface import __version__
 
 setup(
     name='geekcms',
-    version=__version__,
+    version='0.3',
     author='Zhan Haoxun',
     author_email='programmer.zhx@gmail.com',
 
